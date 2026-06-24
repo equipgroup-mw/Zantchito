@@ -1,1 +1,843 @@
-p
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0d2136" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Zantchito Impact" />
+  <meta name="description" content="Zantchito × Equip — Entrepreneurship Impact Data Validation Dashboard" />
+  <title>Zantchito × Equip — Impact Dashboard</title>
+
+  <link rel="icon" type="image/png" href="browser.png" />
+  <link rel="apple-touch-icon" href="appLogo.png" />
+  <link rel="manifest" href="manifest.json" />
+
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+
+  <!-- ═══════════════════════════════════════════════
+       INLINE STYLES
+       ═══════════════════════════════════════════════ -->
+  <style>
+    :root {
+      --navy: #0d2136;
+      --navy-light: #152d47;
+      --navy-dark: #091726;
+      --gold: #a8935a;
+      --gold-light: #c4ae76;
+      --gold-dark: #8a7845;
+      --cream: #f4f2ef;
+      --gray-light: #d3d6d9;
+      --white: #ffffff;
+      --text-primary: #0d2136;
+      --text-secondary: #4a5568;
+      --text-muted: #718096;
+      --shadow-sm: 0 1px 3px rgba(13,33,54,.08);
+      --shadow-md: 0 4px 14px rgba(13,33,54,.10);
+      --shadow-lg: 0 8px 30px rgba(13,33,54,.12);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --header-h: 72px;
+      --transition: .25s cubic-bezier(.4,0,.2,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 16px; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--cream);
+      color: var(--text-primary);
+      line-height: 1.5;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    /* ─── LOADER ─── */
+    .app-loader {
+      position: fixed; inset: 0;
+      background: var(--cream);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 9999;
+      transition: opacity .4s ease;
+    }
+    .app-loader.hidden { opacity: 0; pointer-events: none; }
+    .loader-spinner {
+      width: 52px; height: 52px;
+      border: 4px solid var(--gray-light);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    .loader-text {
+      margin-top: 16px;
+      color: var(--navy);
+      font-size: .9rem;
+      font-weight: 500;
+      letter-spacing: .02em;
+    }
+    .loader-error { color: #b91c1c; font-size: .85rem; margin-top: 8px; max-width: 80%; text-align: center; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── HEADER ─── */
+    .app-header {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--navy);
+      color: var(--cream);
+      box-shadow: var(--shadow-lg);
+    }
+    .header-inner {
+      max-width: 1440px; margin: 0 auto;
+      padding: 0 24px;
+      height: var(--header-h);
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 16px;
+    }
+    .brand-group { display: flex; align-items: center; gap: 16px; min-width: 0; }
+    .logo-pair { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .logo-img {
+      height: 40px; width: auto;
+      object-fit: contain; border-radius: 4px;
+    }
+    .logo-divider { color: var(--gold); font-size: 1.3rem; font-weight: 700; line-height: 1; }
+    .brand-text h1 {
+      font-size: 1.05rem; font-weight: 700;
+      letter-spacing: .02em; line-height: 1.2;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .brand-text .subtitle {
+      font-size: .7rem; color: var(--gold-light);
+      letter-spacing: .04em; text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .header-nav { display: flex; align-items: center; gap: 4px; }
+    .nav-btn {
+      background: transparent; border: none;
+      color: rgba(244,242,239,.7);
+      font-size: .82rem; font-weight: 500;
+      padding: 8px 14px; border-radius: 6px;
+      cursor: pointer; transition: var(--transition);
+      white-space: nowrap;
+    }
+    .nav-btn:hover { color: var(--cream); background: rgba(168,147,90,.15); }
+    .nav-btn.active { color: var(--gold); background: rgba(168,147,90,.2); font-weight: 600; }
+    .hamburger {
+      display: none; flex-direction: column; gap: 5px;
+      background: none; border: none; cursor: pointer; padding: 8px;
+    }
+    .hamburger span {
+      display: block; width: 22px; height: 2px;
+      background: var(--cream); border-radius: 2px;
+      transition: var(--transition);
+    }
+
+    /* ─── MOBILE DRAWER ─── */
+    .mobile-drawer {
+      position: fixed; top: var(--header-h); right: -280px;
+      width: 260px; height: calc(100vh - var(--header-h));
+      height: calc(100dvh - var(--header-h));
+      background: var(--navy); z-index: 99;
+      display: flex; flex-direction: column;
+      padding: 16px; gap: 4px;
+      transition: right var(--transition);
+      box-shadow: -4px 0 20px rgba(0,0,0,.3);
+    }
+    .mobile-drawer.open { right: 0; }
+    .mobile-drawer .nav-btn { text-align: left; font-size: .95rem; padding: 12px 16px; }
+    .drawer-overlay {
+      position: fixed; inset: 0; top: var(--header-h);
+      background: rgba(0,0,0,.4); z-index: 98;
+      opacity: 0; pointer-events: none;
+      transition: opacity var(--transition);
+    }
+    .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+
+    /* ─── MAIN ─── */
+    .dashboard-main { max-width: 1440px; margin: 0 auto; padding: 24px; }
+
+    /* ─── KPI STRIP ─── */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 16px; margin-bottom: 28px;
+    }
+    .kpi-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 20px 16px; text-align: center;
+      box-shadow: var(--shadow-sm);
+      border-top: 3px solid var(--gold);
+      transition: var(--transition);
+    }
+    .kpi-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+    .kpi-label {
+      display: block; font-size: .72rem;
+      text-transform: uppercase; letter-spacing: .06em;
+      color: var(--text-muted); margin-bottom: 6px; font-weight: 600;
+    }
+    .kpi-value {
+      display: block; font-size: 1.8rem; font-weight: 800;
+      color: var(--navy); line-height: 1.1;
+    }
+
+    /* ─── SECTIONS ─── */
+    .dash-section { display: none; animation: fadeIn .35s ease; }
+    .dash-section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    .section-grid { display: grid; gap: 20px; margin-bottom: 20px; }
+    .section-grid.one-col { grid-template-columns: 1fr; }
+    .section-grid.two-col { grid-template-columns: 1fr 1fr; }
+
+    .chart-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 24px; box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+    }
+    .chart-card:hover { box-shadow: var(--shadow-md); }
+    .chart-card h2 {
+      font-size: .92rem; font-weight: 700; color: var(--navy);
+      margin-bottom: 16px; padding-bottom: 10px;
+      border-bottom: 2px solid var(--cream);
+    }
+    .chart-card h2 small {
+      display: block; font-size: .72rem; font-weight: 400;
+      color: var(--text-muted); margin-top: 2px;
+    }
+    .chart-wrap { position: relative; width: 100%; height: 320px; }
+    .chart-wrap-donut { height: 300px; max-width: 380px; margin: 0 auto; }
+    .chart-wrap-wide { height: 400px; }
+
+    /* ─── FOOTER ─── */
+    .app-footer {
+      text-align: center; padding: 24px;
+      color: var(--text-muted); font-size: .75rem;
+      border-top: 1px solid var(--gray-light); margin-top: 20px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       RESPONSIVE
+       ═══════════════════════════════════════════════ */
+    @media (max-width: 1200px) {
+      .kpi-strip { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 900px) {
+      .section-grid.two-col { grid-template-columns: 1fr; }
+      .header-nav .nav-btn { display: none; }
+      .hamburger { display: flex; }
+      .brand-text h1 { font-size: .92rem; }
+    }
+    @media (max-width: 600px) {
+      :root { --header-h: 60px; }
+      .header-inner { padding: 0 12px; }
+      .logo-img { height: 30px; }
+      .brand-text h1 { font-size: .8rem; }
+      .brand-text .subtitle { font-size: .6rem; }
+      .logo-divider { font-size: 1rem; }
+      .dashboard-main { padding: 14px; }
+      .kpi-strip { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .kpi-card { padding: 14px 10px; }
+      .kpi-value { font-size: 1.4rem; }
+      .kpi-label { font-size: .65rem; }
+      .chart-card { padding: 16px; }
+      .chart-wrap { height: 260px; }
+      .chart-wrap-wide { height: 320px; }
+      .chart-wrap-donut { height: 260px; }
+      .chart-card h2 { font-size: .82rem; }
+    }
+    @media (max-width: 380px) {
+      .kpi-strip { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .kpi-value { font-size: 1.2rem; }
+      .logo-pair { gap: 4px; }
+      .logo-img { height: 26px; }
+      .brand-text .subtitle { display: none; }
+    }
+    @media (max-height: 500px) and (orientation: landscape) {
+      :root { --header-h: 52px; }
+      .logo-img { height: 28px; }
+      .chart-wrap { height: 220px; }
+      .chart-wrap-wide { height: 260px; }
+      .kpi-strip { grid-template-columns: repeat(6, 1fr); gap: 8px; }
+      .kpi-card { padding: 10px 8px; }
+      .kpi-value { font-size: 1.2rem; }
+    }
+    @media (min-width: 1800px) {
+      .dashboard-main { max-width: 1700px; }
+      .kpi-value { font-size: 2.2rem; }
+      .chart-wrap { height: 420px; }
+      .chart-wrap-wide { height: 500px; }
+    }
+    @supports (padding: env(safe-area-inset-top)) {
+      .app-header { padding-top: env(safe-area-inset-top); }
+      .app-footer { padding-bottom: env(safe-area-inset-bottom); }
+    }
+    @media print {
+      .app-header, .app-footer, .mobile-drawer, .drawer-overlay, .app-loader { display: none !important; }
+      .dash-section { display: block !important; page-break-inside: avoid; }
+      .chart-card { box-shadow: none; border: 1px solid #ddd; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── LOADER ─── -->
+  <div class="app-loader" id="appLoader">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Loading impact data…</div>
+    <div class="loader-error" id="loaderError"></div>
+  </div>
+
+  <!-- ─── HEADER ─── -->
+  <header class="app-header" id="appHeader">
+    <div class="header-inner">
+      <div class="brand-group">
+        <div class="logo-pair" aria-label="Zantchito and Equip partnership">
+          <img src="Z.png" alt="Zantchito" class="logo-img" loading="eager" />
+          <span class="logo-divider">×</span>
+          <img src="E.png" alt="Equip" class="logo-img" loading="eager" />
+        </div>
+        <div class="brand-text">
+          <h1>Impact Data Validation</h1>
+          <p class="subtitle">Entrepreneurship Programme — Malawi</p>
+        </div>
+      </div>
+      <nav class="header-nav">
+        <button class="nav-btn active" data-section="overview">Overview</button>
+        <button class="nav-btn" data-section="revenue">Revenue</button>
+        <button class="nav-btn" data-section="jobs">Jobs</button>
+        <button class="nav-btn" data-section="sectors">Sectors</button>
+        <button class="nav-btn" data-section="finance">Finance</button>
+        <button class="nav-btn" data-section="integrity">Integrity</button>
+        <button class="hamburger" id="hamburger" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ─── MOBILE NAV DRAWER ─── -->
+  <div class="mobile-drawer" id="mobileDrawer">
+    <button class="nav-btn active" data-section="overview">Overview</button>
+    <button class="nav-btn" data-section="revenue">Revenue</button>
+    <button class="nav-btn" data-section="jobs">Jobs</button>
+    <button class="nav-btn" data-section="sectors">Sectors</button>
+    <button class="nav-btn" data-section="finance">Finance</button>
+    <button class="nav-btn" data-section="integrity">Integrity</button>
+  </div>
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+
+  <!-- ─── MAIN ─── -->
+  <main class="dashboard-main">
+
+    <section class="kpi-strip" id="kpiStrip">
+      <div class="kpi-card"><span class="kpi-label">Entrepreneurs Surveyed</span><span class="kpi-value" id="kpiTotal">—</span></div>
+      <div class="kpi-card"><span class="kpi-label">Operational Businesses</span><span class="kpi-value" id="kpiOperational">—</span></div>
+      <div class="kpi-card"><span class="kpi-label">Total Direct Jobs</span><span class="kpi-value" id="kpiDirectJobs">—</span></div>
+      <div class="kpi-card"><span class="kpi-label">Female Entrepreneurs</span><span class="kpi-value" id="kpiFemale">—</span></div>
+      <div class="kpi-card"><span class="kpi-label">External Finance Obtained</span><span class="kpi-value" id="kpiFinance">—</span></div>
+      <div class="kpi-card"><span class="kpi-label">Formally Registered</span><span class="kpi-value" id="kpiRegistered">—</span></div>
+    </section>
+
+    <!-- OVERVIEW -->
+    <section class="dash-section active" id="section-overview">
+      <div class="section-grid two-col">
+        <div class="chart-card"><h2>Revenue: CommCare vs Reported <small>(MWK, top 15)</small></h2><div class="chart-wrap"><canvas id="chartRevenueCompare"></canvas></div></div>
+        <div class="chart-card"><h2>Gender Distribution</h2><div class="chart-wrap chart-wrap-donut"><canvas id="chartGender"></canvas></div></div>
+      </div>
+      <div class="section-grid two-col">
+        <div class="chart-card"><h2>Location Categorization</h2><div class="chart-wrap"><canvas id="chartLocation"></canvas></div></div>
+        <div class="chart-card"><h2>Incubation Stage Completion</h2><div class="chart-wrap"><canvas id="chartIncubation"></canvas></div></div>
+      </div>
+    </section>
+
+    <!-- REVENUE -->
+    <section class="dash-section" id="section-revenue">
+      <div class="section-grid one-col">
+        <div class="chart-card"><h2>Reported Monthly Revenue by Entrepreneur <small>(MWK — highest to lowest)</small></h2><div class="chart-wrap chart-wrap-wide"><canvas id="chartRevenueBar"></canvas></div></div>
+      </div>
+      <div class="section-grid two-col">
+        <div class="chart-card"><h2>Revenue Variance <small>(|Reported − CommCare|, MWK)</small></h2><div class="chart-wrap"><canvas id="chartVariance"></canvas></div></div>
+        <div class="chart-card"><h2>Top 10 Incubators by Avg Revenue <small>(MWK)</small></h2><div class="chart-wrap"><canvas id="chartIncubatorRevenue"></canvas></div></div>
+      </div>
+    </section>
+
+    <!-- JOBS -->
+    <section class="dash-section" id="section-jobs">
+      <div class="section-grid two-col">
+        <div class="chart-card"><h2>Direct Jobs by Gender</h2><div class="chart-wrap"><canvas id="chartDirectJobs"></canvas></div></div>
+        <div class="chart-card"><h2>Indirect Jobs by Gender</h2><div class="chart-wrap"><canvas id="chartIndirectJobs"></canvas></div></div>
+      </div>
+      <div class="section-grid one-col">
+        <div class="chart-card"><h2>Total Jobs per Entrepreneur <small>(Direct + Indirect, top 15)</small></h2><div class="chart-wrap chart-wrap-wide"><canvas id="chartJobsPerBiz"></canvas></div></div>
+      </div>
+    </section>
+
+    <!-- SECTORS -->
+    <section class="dash-section" id="section-sectors">
+      <div class="section-grid two-col">
+        <div class="chart-card"><h2>Business Sector Distribution</h2><div class="chart-wrap chart-wrap-donut"><canvas id="chartSectorDonut"></canvas></div></div>
+        <div class="chart-card"><h2>Sector Count <small>(sorted)</small></h2><div class="chart-wrap"><canvas id="chartSectorBar"></canvas></div></div>
+      </div>
+      <div class="section-grid one-col">
+        <div class="chart-card"><h2>Entrepreneurs by District <small>(sorted)</small></h2><div class="chart-wrap chart-wrap-wide"><canvas id="chartDistrict"></canvas></div></div>
+      </div>
+    </section>
+
+    <!-- FINANCE -->
+    <section class="dash-section" id="section-finance">
+      <div class="section-grid two-col">
+        <div class="chart-card"><h2>External Finance Access</h2><div class="chart-wrap chart-wrap-donut"><canvas id="chartFinanceAccess"></canvas></div></div>
+        <div class="chart-card"><h2>Finance Types Obtained <small>(among those who accessed finance)</small></h2><div class="chart-wrap"><canvas id="chartFinanceTypes"></canvas></div></div>
+      </div>
+      <div class="section-grid one-col">
+        <div class="chart-card"><h2>Revenue Increase Since Incubation</h2><div class="chart-wrap chart-wrap-donut"><canvas id="chartRevenueIncrease"></canvas></div></div>
+      </div>
+    </section>
+
+    <!-- INTEGRITY -->
+    <section class="dash-section" id="section-integrity">
+      <div class="section-grid two-col">
+        <div class="chart-card"><h2>Overall Data Confidence Rating</h2><div class="chart-wrap"><canvas id="chartConfidence"></canvas></div></div>
+        <div class="chart-card"><h2>Quality of Record-Keeping</h2><div class="chart-wrap"><canvas id="chartRecords"></canvas></div></div>
+      </div>
+      <div class="section-grid two-col">
+        <div class="chart-card"><h2>Revenue Consistency Check</h2><div class="chart-wrap"><canvas id="chartConsistency"></canvas></div></div>
+        <div class="chart-card"><h2>Transparency & Cooperation</h2><div class="chart-wrap"><canvas id="chartTransparency"></canvas></div></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <p>© 2026 Zantchito × Equip — Impact Data Validation Dashboard &middot; Data collected Apr–Jun 2026</p>
+  </footer>
+
+  <!-- ─── EXTERNAL LIBS ─── -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <!-- ═══════════════════════════════════════════════
+       INLINE APP SCRIPT
+       ═══════════════════════════════════════════════ -->
+  <script>
+  (function () {
+    'use strict';
+
+    // ── Service Worker ──
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+
+    // ── Brand palette ──
+    const C = {
+      navy: '#0d2136', gold: '#a8935a', cream: '#f4f2ef',
+      gray: '#d3d6d9', white: '#ffffff',
+      palette: ['#0d2136','#1a3a5c','#2d5a3d','#a8935a','#c4ae76',
+                '#6b8f71','#8a7845','#3d7a6b','#d4a853','#4a6741',
+                '#7c6934','#1e5245','#b89d5e','#2e4a3e','#9c8650']
+    };
+
+    // ── Chart.js defaults ──
+    Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+    Chart.defaults.color = '#4a5568';
+    Chart.defaults.plugins.legend.labels.usePointStyle = true;
+    Chart.defaults.plugins.legend.labels.padding = 16;
+    Chart.defaults.plugins.tooltip.backgroundColor = '#0d2136';
+    Chart.defaults.plugins.tooltip.titleColor = '#f4f2ef';
+    Chart.defaults.plugins.tooltip.bodyColor = '#d3d6d9';
+    Chart.defaults.plugins.tooltip.cornerRadius = 8;
+    Chart.defaults.plugins.tooltip.padding = 12;
+    Chart.defaults.animation = { duration: 700, easing: 'easeOutQuart' };
+
+    // ── Helpers ──
+    const $ = s => document.querySelector(s);
+    const $$ = s => document.querySelectorAll(s);
+    const fmt = n => n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(0)+'K' : (n||0).toString();
+    const fmtMWK = n => 'MWK ' + (n||0).toLocaleString();
+    const num = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+    const int = v => { const n = parseInt(v, 10); return isNaN(n) ? 0 : n; };
+    const boolYes = v => {
+      if (v === undefined || v === null) return false;
+      const s = String(v).trim().toLowerCase();
+      return s === 'yes' || s === '1' || s === 'true';
+    };
+    const sortDesc = (labels, values) => {
+      const paired = labels.map((l,i) => ({l, v:values[i]}));
+      paired.sort((a,b) => b.v - a.v);
+      return { labels: paired.map(p=>p.l), values: paired.map(p=>p.v) };
+    };
+    const aggregateCounts = (arr, key) => {
+      const counts = {};
+      arr.forEach(d => { const v = (d[key] || 'Unknown').trim() || 'Unknown'; counts[v] = (counts[v]||0) + 1; });
+      return sortDesc(Object.keys(counts), Object.values(counts));
+    };
+
+    // ── Column finder (tolerant of header variations) ──
+    function findCol(headers, ...candidates) {
+      const norm = s => s.toLowerCase().replace(/\s+/g,' ').trim();
+      for (const cand of candidates) {
+        const c = norm(cand);
+        const idx = headers.findIndex(h => norm(h) === c);
+        if (idx >= 0) return idx;
+      }
+      // partial match fallback
+      for (const cand of candidates) {
+        const c = norm(cand);
+        const idx = headers.findIndex(h => norm(h).includes(c));
+        if (idx >= 0) return idx;
+      }
+      return -1;
+    }
+
+    // ── Parse CSV row into our data shape ──
+    function parseRow(row, headers, colMap) {
+      const get = key => {
+        const idx = colMap[key];
+        return idx >= 0 ? (row[idx] ?? '') : '';
+      };
+      const sectorRaw = get('sector');
+      const sectorOther = get('sectorOther');
+      let sector = sectorRaw.trim();
+      if (/other/i.test(sector) && sectorOther) sector = sectorOther.trim();
+
+      // Finance type: check 4 checkbox columns
+      let financeType = null;
+      if (boolYes(get('financeAccess'))) {
+        if (boolYes(get('finCommercial'))) financeType = 'Commercial';
+        else if (boolYes(get('finGrant'))) financeType = 'Grant';
+        else if (boolYes(get('finInformal'))) financeType = 'Informal';
+        else if (boolYes(get('finOther'))) financeType = 'Other';
+        else financeType = 'Other';
+      }
+
+      return {
+        id: get('id').trim(),
+        name: get('name').trim(),
+        respondent: get('respondent').trim(),
+        gender: get('gender').trim() || 'Unknown',
+        district: get('district').trim() || 'Unknown',
+        incubator: get('incubator').trim() || 'Unknown',
+        stage: get('stage').trim() || 'Unknown',
+        sector: sector || 'Other',
+        location: get('location').trim() || 'Unknown',
+        operational: boolYes(get('operational')),
+        registered: boolYes(get('registered')),
+        commcareRev: num(get('commcareRev')),
+        reportedRev: num(get('reportedRev')),
+        variance: num(get('variance')),
+        directJobs: int(get('directJobs')),
+        femaleDirect: int(get('femaleDirect')),
+        indirectJobs: int(get('indirectJobs')),
+        femaleIndirect: int(get('femaleIndirect')),
+        financeAccess: boolYes(get('financeAccess')),
+        financeType: financeType,
+        confidence: get('confidence').trim() || 'Unknown',
+        records: get('records').trim() || 'Unknown',
+        consistency: get('consistency').trim() || 'Unknown',
+        transparency: get('transparency').trim() || 'Unknown',
+        revenueIncrease: boolYes(get('revenueIncrease'))
+      };
+    }
+
+    // ── Load & parse CSV ──
+    async function loadCSV() {
+      const res = await fetch('./data.csv', { cache: 'no-store' });
+      if (!res.ok) throw new Error('Failed to load data.csv (HTTP ' + res.status + ')');
+      const text = await res.text();
+      const parsed = Papa.parse(text, { header: false, skipEmptyLines: true });
+      if (!parsed.data || parsed.data.length < 2) throw new Error('CSV appears to be empty');
+      const headers = parsed.data[0];
+      const rows = parsed.data.slice(1);
+
+      // Build column map
+      const colMap = {
+        id: findCol(headers, '1. Entrepreneur ID (CommCare):', 'Entrepreneur ID'),
+        name: findCol(headers, '2. Business Name:', 'Business Name'),
+        respondent: findCol(headers, '4. Name of Respondent:', 'Name of Respondent'),
+        gender: findCol(headers, '5. Gender of Respondent:', 'Gender of Respondent'),
+        district: findCol(headers, '7. District:', 'District'),
+        incubator: findCol(headers, '8. Incubator:', 'Incubator'),
+        stage: findCol(headers, '9. Zantchito Entrepreneurship Programme:'),
+        sector: findCol(headers, '11. Sector of Business/Idea'),
+        sectorOther: findCol(headers, '11. Sector of Business/Idea', 'If other, please indicate here'),
+        location: findCol(headers, '12. Location Categorization:'),
+        operational: findCol(headers, '14. Is the business currently operational?'),
+        registered: findCol(headers, '17. Is your business formally registered?'),
+        commcareRev: findCol(headers, '21.2. Commcare Rev (MWK):'),
+        reportedRev: findCol(headers, '21.3. Respondent Reported Figure (MWK):'),
+        variance: findCol(headers, '21.5. Variance (MWK)'),
+        directJobs: findCol(headers, 'Total direct jobs (Response)', 'Total direct jobs'),
+        femaleDirect: findCol(headers, 'Female direct jobs (Response)', 'Female direct jobs'),
+        indirectJobs: findCol(headers, 'Total indirect jobs (Response)', 'Total indirect jobs'),
+        femaleIndirect: findCol(headers, 'Female indirect jobs (Response)', 'Female indirect jobs'),
+        financeAccess: findCol(headers, '25. Were you able to access any external finance', 'Have you been able to access any external finance'),
+        finCommercial: findCol(headers, '26. If yes, type of finance:/Commercial'),
+        finGrant: findCol(headers, '26. If yes, type of finance:/Grant'),
+        finInformal: findCol(headers, '26. If yes, type of finance:/Informal (family / friends)'),
+        finOther: findCol(headers, '26. If yes, type of finance:/Other'),
+        confidence: findCol(headers, '30. Overall confidence in the accuracy of data provided by this respondent:'),
+        records: findCol(headers, '28. Quality of business record-keeping observed:'),
+        consistency: findCol(headers, '27. Does the physical scale and activity of the business appear consistent with reported revenue levels?'),
+        transparency: findCol(headers, '29. Respondent\'s level of transparency and cooperation during the interview:'),
+        revenueIncrease: findCol(headers, '22.2. Experienced an increase of revenue since the Zantchito incubation?')
+      };
+
+      return rows.map(r => parseRow(r, headers, colMap)).filter(d => d.id);
+    }
+
+    // ── Chart builders ──
+    function makeBarChart(canvasId, labels, values, color) {
+      const ctx = document.getElementById(canvasId);
+      if (!ctx) return;
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            data: values,
+            backgroundColor: color || C.gold,
+            borderRadius: 6, borderSkipped: false,
+            barPercentage: .7, categoryPercentage: .8
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => fmtMWK(ctx.raw) } }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { maxRotation: 45, minRotation: 30, font: { size: window.innerWidth < 600 ? 9 : 11 } }
+            },
+            y: {
+              grid: { color: 'rgba(0,0,0,.05)' },
+              ticks: { callback: v => fmt(v), font: { size: window.innerWidth < 600 ? 9 : 11 } }
+            }
+          }
+        }
+      });
+    }
+
+    function makeDonutChart(canvasId, labels, values) {
+      const ctx = document.getElementById(canvasId);
+      if (!ctx) return;
+      const colors = labels.map((_,i) => C.palette[i % C.palette.length]);
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{
+            data: values, backgroundColor: colors,
+            borderWidth: 2, borderColor: C.white, hoverOffset: 8
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, cutout: '55%',
+          plugins: {
+            legend: { position: 'bottom', labels: { font: { size: window.innerWidth < 600 ? 10 : 12 }, padding: 12 } }
+          }
+        }
+      });
+    }
+
+    function makeGroupedBar(canvasId, labels, datasets) {
+      const ctx = document.getElementById(canvasId);
+      if (!ctx) return;
+      new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' },
+            tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw } }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: window.innerWidth<600?9:11 } } },
+            y: { grid: { color:'rgba(0,0,0,.05)' }, ticks: { font: { size: window.innerWidth<600?9:11 } } }
+          }
+        }
+      });
+    }
+
+    // ── KPIs ──
+    function renderKPIs(DATA) {
+      const total = DATA.length;
+      const operational = DATA.filter(d => d.operational).length;
+      const directJobs = DATA.reduce((s,d) => s + d.directJobs, 0);
+      const females = DATA.filter(d => d.gender === 'Female').length;
+      const finance = DATA.filter(d => d.financeAccess).length;
+      const registered = DATA.filter(d => d.registered).length;
+
+      $('#kpiTotal').textContent = total;
+      $('#kpiOperational').textContent = operational;
+      $('#kpiDirectJobs').textContent = directJobs;
+      $('#kpiFemale').textContent = females + ' (' + Math.round(females/total*100) + '%)';
+      $('#kpiFinance').textContent = finance;
+      $('#kpiRegistered').textContent = registered;
+    }
+
+    // ── Section renderers ──
+    function renderOverview(DATA) {
+      const sorted = [...DATA].sort((a,b) => b.reportedRev - a.reportedRev).slice(0,15);
+      const labels = sorted.map(d => d.name.length > 22 ? d.name.slice(0,20)+'…' : d.name);
+      makeGroupedBar('chartRevenueCompare', labels, [
+        { label:'CommCare (MWK)', data: sorted.map(d=>d.commcareRev), backgroundColor: C.navy, borderRadius:6, barPercentage:.7 },
+        { label:'Reported (MWK)', data: sorted.map(d=>d.reportedRev), backgroundColor: C.gold, borderRadius:6, barPercentage:.7 }
+      ]);
+      const g = aggregateCounts(DATA, 'gender');
+      makeDonutChart('chartGender', g.labels, g.values);
+      const loc = aggregateCounts(DATA, 'location');
+      makeBarChart('chartLocation', loc.labels, loc.values, C.navy);
+      const stg = aggregateCounts(DATA, 'stage');
+      makeBarChart('chartIncubation', stg.labels, stg.values, C.gold);
+    }
+
+    function renderRevenue(DATA) {
+      const active = DATA.filter(d => d.reportedRev > 0).sort((a,b) => b.reportedRev - a.reportedRev);
+      makeBarChart('chartRevenueBar',
+        active.map(d => d.name.length > 20 ? d.name.slice(0,18)+'…' : d.name),
+        active.map(d=>d.reportedRev), C.navy);
+
+      const withVar = DATA.filter(d => d.variance !== 0).sort((a,b) => Math.abs(b.variance) - Math.abs(a.variance));
+      makeBarChart('chartVariance',
+        withVar.map(d => d.name.length > 18 ? d.name.slice(0,16)+'…' : d.name),
+        withVar.map(d => Math.abs(d.variance)), C.gold);
+
+      const incGroups = {};
+      DATA.forEach(d => {
+        if (!incGroups[d.incubator]) incGroups[d.incubator] = [];
+        incGroups[d.incubator].push(d.reportedRev);
+      });
+      const incAvg = Object.entries(incGroups).map(([k,v]) => ({
+        label: k, value: Math.round(v.reduce((a,b)=>a+b,0) / v.length)
+      })).sort((a,b) => b.value - a.value).slice(0,10);
+      makeBarChart('chartIncubatorRevenue',
+        incAvg.map(d => d.label.length > 22 ? d.label.slice(0,20)+'…' : d.label),
+        incAvg.map(d => d.value), C.navy);
+    }
+
+    function renderJobs(DATA) {
+      const directSorted = [...DATA].filter(d=>d.directJobs>0).sort((a,b)=>b.directJobs-a.directJobs).slice(0,15);
+      makeGroupedBar('chartDirectJobs',
+        directSorted.map(d => d.name.length>18?d.name.slice(0,16)+'…':d.name),
+        [
+          { label:'Male', data: directSorted.map(d=>d.directJobs - d.femaleDirect), backgroundColor: C.navy, borderRadius:6 },
+          { label:'Female', data: directSorted.map(d=>d.femaleDirect), backgroundColor: C.gold, borderRadius:6 }
+        ]);
+
+      const indirectSorted = [...DATA].filter(d=>d.indirectJobs>0).sort((a,b)=>b.indirectJobs-a.indirectJobs).slice(0,15);
+      makeGroupedBar('chartIndirectJobs',
+        indirectSorted.map(d => d.name.length>18?d.name.slice(0,16)+'…':d.name),
+        [
+          { label:'Male', data: indirectSorted.map(d=>d.indirectJobs - d.femaleIndirect), backgroundColor: C.navy, borderRadius:6 },
+          { label:'Female', data: indirectSorted.map(d=>d.femaleIndirect), backgroundColor: C.gold, borderRadius:6 }
+        ]);
+
+      const totalJobs = DATA.map(d => ({...d, total: d.directJobs+d.indirectJobs}))
+        .filter(d=>d.total>0).sort((a,b)=>b.total-a.total).slice(0,15);
+      makeBarChart('chartJobsPerBiz',
+        totalJobs.map(d => d.name.length>20?d.name.slice(0,18)+'…':d.name),
+        totalJobs.map(d=>d.total), C.gold);
+    }
+
+    function renderSectors(DATA) {
+      const sec = aggregateCounts(DATA, 'sector');
+      makeDonutChart('chartSectorDonut', sec.labels, sec.values);
+      makeBarChart('chartSectorBar', sec.labels, sec.values, C.navy);
+      const dist = aggregateCounts(DATA, 'district');
+      makeBarChart('chartDistrict', dist.labels, dist.values, C.gold);
+    }
+
+    function renderFinance(DATA) {
+      const access = { 'Yes':0, 'No':0 };
+      DATA.forEach(d => { d.financeAccess ? access['Yes']++ : access['No']++; });
+      const accessSorted = sortDesc(Object.keys(access), Object.values(access));
+      makeDonutChart('chartFinanceAccess', accessSorted.labels, accessSorted.values);
+
+      const types = {};
+      DATA.filter(d=>d.financeType).forEach(d => { types[d.financeType] = (types[d.financeType]||0)+1; });
+      const typesSorted = sortDesc(Object.keys(types), Object.values(types));
+      makeBarChart('chartFinanceTypes', typesSorted.labels, typesSorted.values, C.navy);
+
+      const inc = { 'Yes':0, 'No':0 };
+      DATA.forEach(d => { d.revenueIncrease ? inc['Yes']++ : inc['No']++; });
+      const incSorted = sortDesc(Object.keys(inc), Object.values(inc));
+      makeDonutChart('chartRevenueIncrease', incSorted.labels, incSorted.values);
+    }
+
+    function renderIntegrity(DATA) {
+      const conf = aggregateCounts(DATA, 'confidence');
+      makeBarChart('chartConfidence', conf.labels, conf.values, C.navy);
+      const rec = aggregateCounts(DATA, 'records');
+      makeBarChart('chartRecords', rec.labels, rec.values, C.gold);
+      const con = aggregateCounts(DATA, 'consistency');
+      makeBarChart('chartConsistency', con.labels, con.values, C.navy);
+      const trans = aggregateCounts(DATA, 'transparency');
+      makeBarChart('chartTransparency', trans.labels, trans.values, C.gold);
+    }
+
+    const sectionRenderers = {
+      overview: renderOverview, revenue: renderRevenue, jobs: renderJobs,
+      sectors: renderSectors, finance: renderFinance, integrity: renderIntegrity
+    };
+    const rendered = new Set();
+    let DATA_CACHE = null;
+
+    function switchSection(name) {
+      $$('.dash-section').forEach(s => s.classList.remove('active'));
+      const el = $(`#section-${name}`);
+      if (el) el.classList.add('active');
+      $$('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.section === name));
+      if (!rendered.has(name) && sectionRenderers[name] && DATA_CACHE) {
+        sectionRenderers[name](DATA_CACHE);
+        rendered.add(name);
+      }
+      $('#mobileDrawer').classList.remove('open');
+      $('#drawerOverlay').classList.remove('open');
+    }
+
+    // ── Boot ──
+    async function boot() {
+      const loader = $('#appLoader');
+      const errorEl = $('#loaderError');
+      try {
+        DATA_CACHE = await loadCSV();
+        if (!DATA_CACHE.length) throw new Error('No valid rows found in data.csv');
+        renderKPIs(DATA_CACHE);
+        switchSection('overview');
+        loader.classList.add('hidden');
+        setTimeout(() => loader.remove(), 500);
+      } catch (err) {
+        console.error(err);
+        errorEl.textContent = '⚠ ' + err.message + '. Make sure data.csv is in the same folder and served over HTTP(S).';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      $$('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchSection(btn.dataset.section));
+      });
+      $('#hamburger').addEventListener('click', () => {
+        $('#mobileDrawer').classList.toggle('open');
+        $('#drawerOverlay').classList.toggle('open');
+      });
+      $('#drawerOverlay').addEventListener('click', () => {
+        $('#mobileDrawer').classList.remove('open');
+        $('#drawerOverlay').classList.remove('open');
+      });
+      boot();
+    });
+  })();
+  </script>
+</body>
+</html>
