@@ -585,7 +585,7 @@
     }
 
     async function loadCSV() {
-      const res = await fetch('./data.csv', { cache: 'no-store' });
+      const res = await fetch('./data.csv?v=' + Date.now(), { cache: 'no-store' });
       if (!res.ok) throw new Error('Failed to load data.csv (HTTP ' + res.status + ')');
       const text = await res.text();
       const parsed = Papa.parse(text, { header: false, skipEmptyLines: true });
@@ -632,55 +632,68 @@
 
     function destroyChart(canvasId) {
       if (chartInstances.has(canvasId)) {
-        chartInstances.get(canvasId).destroy();
+        try {
+          const chart = chartInstances.get(canvasId);
+          if (chart && typeof chart.destroy === 'function') {
+            chart.destroy();
+          }
+        } catch (e) {
+          console.warn('Error destroying chart:', canvasId, e);
+        }
         chartInstances.delete(canvasId);
       }
     }
 
-    // Simplified data label plugin
+    // Data label plugin - only draws labels, no options access
     const dataLabelPlugin = {
       id: 'dataLabels',
       afterDatasetsDraw(chart) {
+        if (chart.config.type === 'doughnut' || chart.config.type === 'pie') return;
+        
         const ctx = chart.ctx;
         chart.data.datasets.forEach((dataset, datasetIndex) => {
           const meta = chart.getDatasetMeta(datasetIndex);
-          if (!meta.hidden && chart.config.type !== 'doughnut' && chart.config.type !== 'pie') {
-            meta.data.forEach((element, index) => {
-              const value = dataset.data[index];
-              if (value === 0 || value === null || value === undefined) return;
-              
-              // Get formatter from dataset
-              let formattedValue = value;
-              if (dataset._labelFormatter) {
+          if (meta.hidden) return;
+          
+          meta.data.forEach((element, index) => {
+            const value = dataset.data[index];
+            if (value === 0 || value === null || value === undefined) return;
+            
+            let formattedValue = value;
+            if (typeof dataset._labelFormatter === 'function') {
+              try {
                 formattedValue = dataset._labelFormatter(value);
-              } else if (dataset.label && (dataset.label.includes('MWK') || dataset.label.includes('Revenue'))) {
-                formattedValue = fmtMWK(value);
-              } else {
-                formattedValue = fmt(value);
+              } catch (e) {
+                formattedValue = String(value);
               }
-              
-              ctx.fillStyle = C.axisColor;
-              ctx.font = Chart.helpers.fontString(10, '600', "'Libre Franklin', sans-serif");
-              ctx.textAlign = 'center';
-              ctx.textBaseline = 'middle';
-              
-              if (chart.isHorizontal) {
-                const x = element.x + (value >= 0 ? 15 : -15);
-                const y = element.y;
-                ctx.textAlign = value >= 0 ? 'left' : 'right';
-                ctx.fillText(formattedValue, x, y);
-              } else {
-                const x = element.x;
-                const y = element.y - 12;
-                ctx.fillText(formattedValue, x, y);
-              }
-            });
-          }
+            } else {
+              formattedValue = String(value);
+            }
+            
+            ctx.fillStyle = C.axisColor;
+            ctx.font = Chart.helpers.fontString(10, '600', "'Libre Franklin', sans-serif");
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            if (chart.isHorizontal) {
+              const x = element.x + (value >= 0 ? 15 : -15);
+              const y = element.y;
+              ctx.textAlign = value >= 0 ? 'left' : 'right';
+              ctx.fillText(formattedValue, x, y);
+            } else {
+              const x = element.x;
+              const y = element.y - 12;
+              ctx.fillText(formattedValue, x, y);
+            }
+          });
         });
       }
     };
 
-    Chart.register(dataLabelPlugin);
+    // Only register if not already registered
+    if (!Chart.registry.plugins.get('dataLabels')) {
+      Chart.register(dataLabelPlugin);
+    }
 
     function makeHorizontalBarChart(canvasId, labels, values, color, title = '') {
       destroyChart(canvasId);
@@ -688,7 +701,6 @@
       if (!ctx) return;
       
       const isMWK = title.includes('MWK') || title.includes('Revenue');
-      const formatter = isMWK ? fmtMWK : fmt;
       
       const chart = new Chart(ctx, {
         type: 'bar',
@@ -701,7 +713,7 @@
             borderSkipped: false,
             barPercentage: 0.7,
             categoryPercentage: 0.8,
-            _labelFormatter: formatter
+            _labelFormatter: isMWK ? fmtMWK : fmt
           }]
         },
         options: {
@@ -747,7 +759,6 @@
       if (!ctx) return;
       
       const isMWK = title.includes('MWK') || title.includes('Revenue');
-      const formatter = isMWK ? fmtMWK : fmt;
       
       if (values.length > 5) {
         return makeHorizontalBarChart(canvasId, labels, values, color, title);
@@ -764,7 +775,7 @@
             borderSkipped: false,
             barPercentage: 0.7,
             categoryPercentage: 0.8,
-            _labelFormatter: formatter
+            _labelFormatter: isMWK ? fmtMWK : fmt
           }]
         },
         options: {
@@ -1115,24 +1126,29 @@
       integrity: renderIntegrity
     };
     
-    const rendered = new Set();
     let DATA_CACHE = null;
 
     function switchSection(name) {
+      // Show/hide sections
       $$('.dash-section').forEach(s => s.classList.remove('active'));
       const el = $(`#section-${name}`);
       if (el) el.classList.add('active');
       
+      // Update nav buttons
       $$('.nav-btn').forEach(b => {
         const isActive = b.dataset.section === name;
         b.classList.toggle('active', isActive);
       });
       
+      // Always render when switching (data is cached, charts are recreated)
       if (DATA_CACHE && sectionRenderers[name]) {
-        sectionRenderers[name](DATA_CACHE);
-        rendered.add(name);
+        // Use requestAnimationFrame to ensure DOM is ready
+        requestAnimationFrame(() => {
+          sectionRenderers[name](DATA_CACHE);
+        });
       }
       
+      // Close mobile drawer
       $('#mobileDrawer').classList.remove('open');
       $('#drawerOverlay').classList.remove('open');
     }
