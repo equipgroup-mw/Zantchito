@@ -483,6 +483,10 @@
                 '#7c6934','#1e5245','#b89d5e','#2e4a3e','#9c8650']
     };
 
+    // CRITICAL: Disable Chart.js animations to prevent shared-animator crashes when tabs switch
+    Chart.defaults.animation = false;
+    Chart.defaults.transitions.active.animation.duration = 0;
+
     Chart.defaults.font.family = "'Libre Franklin', 'Segoe UI', system-ui, sans-serif";
     Chart.defaults.color = C.axisColor;
     Chart.defaults.font.size = 12;
@@ -626,10 +630,13 @@
       return rows.map(r => parseRow(r, headers, colMap)).filter(d => d.id);
     }
 
+    // Chart instance registry for resize calls
+    const charts = {};
+
     function makeHBar(canvasId, labels, values, color, isMWK) {
       const ctx = document.getElementById(canvasId);
       if (!ctx || !labels.length) return;
-      new Chart(ctx, {
+      charts[canvasId] = new Chart(ctx, {
         type: 'bar',
         data: {
           labels,
@@ -670,7 +677,7 @@
     function makeVBar(canvasId, labels, values, color, isMWK) {
       const ctx = document.getElementById(canvasId);
       if (!ctx || !labels.length) return;
-      new Chart(ctx, {
+      charts[canvasId] = new Chart(ctx, {
         type: 'bar',
         data: {
           labels,
@@ -712,7 +719,7 @@
       if (!ctx || !labels.length) return;
       const colors = values.length === 2 ? [C.navy, C.gold] : labels.map((_,i) => C.palette[i % C.palette.length]);
       const total = values.reduce((a,b) => a+b, 0);
-      new Chart(ctx, {
+      charts[canvasId] = new Chart(ctx, {
         type: 'doughnut',
         data: {
           labels,
@@ -762,7 +769,7 @@
     function makeGrouped(canvasId, labels, datasets, isHorizontal) {
       const ctx = document.getElementById(canvasId);
       if (!ctx || !labels.length) return;
-      new Chart(ctx, {
+      charts[canvasId] = new Chart(ctx, {
         type: 'bar',
         data: { 
           labels, 
@@ -811,11 +818,9 @@
       });
     }
 
-    // ── DATA ──
     let DATA = null;
     const rendered = {};
 
-    // ── RENDER FUNCTIONS ──
     function renderOverview(D) {
       const total = D.length;
       const operational = D.filter(d => d.operational).length;
@@ -965,7 +970,6 @@
       integrity: renderIntegrity
     };
 
-    // ── TAB SWITCHING ──
     function switchSection(name) {
       $$('.dash-section').forEach(s => s.classList.remove('active'));
       const el = $(`#section-${name}`);
@@ -978,11 +982,19 @@
       $('#mobileDrawer').classList.remove('open');
       $('#drawerOverlay').classList.remove('open');
 
-      // Lazy-render: only create charts when tab becomes visible
+      // Lazy-render if first visit to this tab
       if (!rendered[name] && DATA && renderers[name]) {
         renderers[name](DATA);
         rendered[name] = true;
       }
+
+      // Safety: resize all charts in this tab after it becomes visible
+      // Prevents squashed render from ResizeObserver firing 0x0 during display:none
+      requestAnimationFrame(() => {
+        Object.values(charts).forEach(chart => {
+          if (chart && chart.resize) chart.resize();
+        });
+      });
     }
 
     function initMobileNav() {
@@ -1028,7 +1040,6 @@
         DATA = await loadCSV();
         if (!DATA.length) throw new Error('No valid rows found');
 
-        // Only render Overview on boot (it's the visible tab)
         renderOverview(DATA);
         rendered.overview = true;
         initMobileNav();
