@@ -1,9 +1,5 @@
-const CACHE_NAME = 'zantchito-dash-v4';
-const CSV_VERSION = '20260625'; // ← bump this when you update data.csv
-
+const CACHE_NAME = 'zantchito-dash-v5'; // bump this every deploy
 const ASSETS = [
-  './',
-  './index.html',
   './manifest.json',
   './Z.png',
   './E.png',
@@ -12,6 +8,7 @@ const ASSETS = [
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js',
   'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js'
 ];
+// index.html and './' deliberately removed from ASSETS — handled network-first below
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
@@ -30,8 +27,8 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = e.request.url;
 
-  // CSV: network-first + cache with version key
-  if (url.includes('data.csv')) {
+  // HTML shell + data.csv: network-first, always try fresh, fall back to cache offline
+  if (url.includes('data.csv') || e.request.mode === 'navigate' || url.endsWith('index.html') || url.endsWith('/')) {
     e.respondWith(
       fetch(e.request)
         .then(res => {
@@ -54,7 +51,7 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Everything else: cache-first
+  // Static assets (images, manifest, CDN libs): cache-first
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request).catch(() =>
       new Response('Offline', { status: 503 })
