@@ -15,6 +15,9 @@
   <link rel="manifest" href="manifest.json" />
 
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
   <!-- ═══════════════════════════════════════════════
        INLINE STYLES
@@ -31,8 +34,8 @@
       --gray-light: #d3d6d9;
       --white: #ffffff;
       --text-primary: #0d2136;
-      --text-secondary: #4a5568;
-      --text-muted: #718096;
+      --text-secondary: #2d3748;
+      --text-muted: #4a5568;
       --shadow-sm: 0 1px 3px rgba(13,33,54,.08);
       --shadow-md: 0 4px 14px rgba(13,33,54,.10);
       --shadow-lg: 0 8px 30px rgba(13,33,54,.12);
@@ -47,7 +50,7 @@
     html { font-size: 16px; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 
     body {
-      font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      font-family: 'Libre Franklin', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
       background: var(--cream);
       color: var(--text-primary);
       line-height: 1.5;
@@ -96,8 +99,9 @@
       height: var(--header-h);
       display: flex; align-items: center;
       justify-content: space-between; gap: 16px;
+      position: relative;
     }
-    .brand-group { display: flex; align-items: center; gap: 16px; min-width: 0; }
+    .brand-group { display: flex; align-items: center; gap: 16px; min-width: 0; flex: 1; }
     .logo-pair { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
     .logo-img {
       height: 40px; width: auto;
@@ -114,7 +118,7 @@
       letter-spacing: .04em; text-transform: uppercase;
       white-space: nowrap;
     }
-    .header-nav { display: flex; align-items: center; gap: 4px; }
+    .header-nav { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
     .nav-btn {
       background: transparent; border: none;
       color: rgba(244,242,239,.7);
@@ -122,66 +126,111 @@
       padding: 8px 14px; border-radius: 6px;
       cursor: pointer; transition: var(--transition);
       white-space: nowrap;
+      font-family: 'Libre Franklin', sans-serif;
     }
     .nav-btn:hover { color: var(--cream); background: rgba(168,147,90,.15); }
     .nav-btn.active { color: var(--gold); background: rgba(168,147,90,.2); font-weight: 600; }
+    
     .hamburger {
-      display: none; flex-direction: column; gap: 5px;
-      background: none; border: none; cursor: pointer; padding: 8px;
+      display: none; 
+      flex-direction: column; 
+      gap: 5px;
+      background: none; 
+      border: none; 
+      cursor: pointer; 
+      padding: 8px;
+      z-index: 101;
+      position: relative;
+      margin-left: auto;
     }
     .hamburger span {
-      display: block; width: 22px; height: 2px;
-      background: var(--cream); border-radius: 2px;
+      display: block; 
+      width: 22px; 
+      height: 2px;
+      background: var(--cream); 
+      border-radius: 2px;
       transition: var(--transition);
     }
 
     /* ─── MOBILE DRAWER ─── */
     .mobile-drawer {
-      position: fixed; top: var(--header-h); right: -280px;
-      width: 260px; height: calc(100vh - var(--header-h));
+      position: fixed; 
+      top: var(--header-h); 
+      right: -280px;
+      width: 280px; 
+      height: calc(100vh - var(--header-h));
       height: calc(100dvh - var(--header-h));
-      background: var(--navy); z-index: 99;
-      display: flex; flex-direction: column;
-      padding: 16px; gap: 4px;
+      background: var(--navy); 
+      z-index: 99;
+      display: flex; 
+      flex-direction: column;
+      padding: 16px; 
+      gap: 4px;
       transition: right var(--transition);
       box-shadow: -4px 0 20px rgba(0,0,0,.3);
+      overflow-y: auto;
     }
     .mobile-drawer.open { right: 0; }
-    .mobile-drawer .nav-btn { text-align: left; font-size: .95rem; padding: 12px 16px; }
+    .mobile-drawer .nav-btn { 
+      text-align: left; 
+      font-size: .95rem; 
+      padding: 14px 16px;
+      width: 100%;
+      border-radius: 8px;
+    }
     .drawer-overlay {
-      position: fixed; inset: 0; top: var(--header-h);
-      background: rgba(0,0,0,.4); z-index: 98;
-      opacity: 0; pointer-events: none;
+      position: fixed; 
+      inset: 0; 
+      top: var(--header-h);
+      background: rgba(0,0,0,.4); 
+      z-index: 98;
+      opacity: 0; 
+      pointer-events: none;
       transition: opacity var(--transition);
     }
     .drawer-overlay.open { opacity: 1; pointer-events: auto; }
 
     /* ─── MAIN ─── */
-    .dashboard-main { max-width: 1440px; margin: 0 auto; padding: 24px; }
+    .dashboard-main { 
+      max-width: 1440px; 
+      margin: 0 auto; 
+      padding: 24px; 
+      width: 100%;
+      overflow-x: hidden;
+    }
 
     /* ─── KPI STRIP ─── */
     .kpi-strip {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
-      gap: 16px; margin-bottom: 28px;
+      gap: 16px; 
+      margin-bottom: 28px;
     }
     .kpi-card {
       background: var(--white);
       border-radius: var(--radius);
-      padding: 20px 16px; text-align: center;
+      padding: 20px 16px; 
+      text-align: center;
       box-shadow: var(--shadow-sm);
       border-top: 3px solid var(--gold);
       transition: var(--transition);
     }
     .kpi-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
     .kpi-label {
-      display: block; font-size: .72rem;
-      text-transform: uppercase; letter-spacing: .06em;
-      color: var(--text-muted); margin-bottom: 6px; font-weight: 600;
+      display: block; 
+      font-size: .72rem;
+      text-transform: uppercase; 
+      letter-spacing: .06em;
+      color: var(--text-muted); 
+      margin-bottom: 6px; 
+      font-weight: 600;
     }
     .kpi-value {
-      display: block; font-size: 1.8rem; font-weight: 800;
-      color: var(--navy); line-height: 1.1;
+      display: block; 
+      font-size: 1.8rem; 
+      font-weight: 800;
+      color: var(--navy); 
+      line-height: 1.1;
     }
 
     /* ─── SECTIONS ─── */
@@ -196,18 +245,25 @@
     .chart-card {
       background: var(--white);
       border-radius: var(--radius);
-      padding: 24px; box-shadow: var(--shadow-sm);
+      padding: 24px; 
+      box-shadow: var(--shadow-sm);
       transition: var(--transition);
     }
     .chart-card:hover { box-shadow: var(--shadow-md); }
     .chart-card h2 {
-      font-size: .92rem; font-weight: 700; color: var(--navy);
-      margin-bottom: 16px; padding-bottom: 10px;
+      font-size: .92rem; 
+      font-weight: 700; 
+      color: var(--navy);
+      margin-bottom: 16px; 
+      padding-bottom: 10px;
       border-bottom: 2px solid var(--cream);
     }
     .chart-card h2 small {
-      display: block; font-size: .72rem; font-weight: 400;
-      color: var(--text-muted); margin-top: 2px;
+      display: block; 
+      font-size: .72rem; 
+      font-weight: 400;
+      color: var(--text-muted); 
+      margin-top: 2px;
     }
     .chart-wrap { position: relative; width: 100%; height: 320px; }
     .chart-wrap-donut { height: 300px; max-width: 380px; margin: 0 auto; }
@@ -215,9 +271,12 @@
 
     /* ─── FOOTER ─── */
     .app-footer {
-      text-align: center; padding: 24px;
-      color: var(--text-muted); font-size: .75rem;
-      border-top: 1px solid var(--gray-light); margin-top: 20px;
+      text-align: center; 
+      padding: 24px;
+      color: var(--text-muted); 
+      font-size: .75rem;
+      border-top: 1px solid var(--gray-light); 
+      margin-top: 20px;
     }
 
     /* ═══════════════════════════════════════════════
@@ -231,14 +290,17 @@
       .header-nav .nav-btn { display: none; }
       .hamburger { display: flex; }
       .brand-text h1 { font-size: .92rem; }
+      .header-inner { padding: 0 16px; }
     }
     @media (max-width: 600px) {
       :root { --header-h: 60px; }
-      .header-inner { padding: 0 12px; }
+      .header-inner { padding: 0 12px; gap: 8px; }
       .logo-img { height: 30px; }
-      .brand-text h1 { font-size: .8rem; }
-      .brand-text .subtitle { font-size: .6rem; }
+      .brand-text h1 { font-size: .75rem; }
+      .brand-text .subtitle { font-size: .55rem; }
       .logo-divider { font-size: 1rem; }
+      .brand-group { gap: 8px; }
+      .logo-pair { gap: 4px; }
       .dashboard-main { padding: 14px; }
       .kpi-strip { grid-template-columns: repeat(2, 1fr); gap: 10px; }
       .kpi-card { padding: 14px 10px; }
@@ -253,9 +315,11 @@
     @media (max-width: 380px) {
       .kpi-strip { grid-template-columns: 1fr 1fr; gap: 8px; }
       .kpi-value { font-size: 1.2rem; }
-      .logo-pair { gap: 4px; }
-      .logo-img { height: 26px; }
+      .logo-pair { gap: 3px; }
+      .logo-img { height: 24px; }
       .brand-text .subtitle { display: none; }
+      .brand-text h1 { font-size: .7rem; }
+      .header-inner { padding: 0 8px; gap: 4px; }
     }
     @media (max-height: 500px) and (orientation: landscape) {
       :root { --header-h: 52px; }
@@ -303,7 +367,7 @@
         </div>
         <div class="brand-text">
           <h1>Impact Data Validation</h1>
-          <p class="subtitle">Entrepreneurship Programme — Malawi</p>
+          <p class="subtitle">Business Incubation Programme — Malawi</p>
         </div>
       </div>
       <nav class="header-nav">
@@ -313,10 +377,10 @@
         <button class="nav-btn" data-section="sectors">Sectors</button>
         <button class="nav-btn" data-section="finance">Finance</button>
         <button class="nav-btn" data-section="integrity">Integrity</button>
-        <button class="hamburger" id="hamburger" aria-label="Menu">
-          <span></span><span></span><span></span>
-        </button>
       </nav>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </header>
 
@@ -353,15 +417,18 @@
         <div class="chart-card"><h2>Location Categorization</h2><div class="chart-wrap"><canvas id="chartLocation"></canvas></div></div>
         <div class="chart-card"><h2>Incubation Stage Completion</h2><div class="chart-wrap"><canvas id="chartIncubation"></canvas></div></div>
       </div>
+      <div class="section-grid one-col">
+        <div class="chart-card"><h2>Entrepreneurs per Incubator</h2><div class="chart-wrap chart-wrap-wide"><canvas id="chartIncubatorDist"></canvas></div></div>
+      </div>
     </section>
 
     <!-- REVENUE -->
     <section class="dash-section" id="section-revenue">
       <div class="section-grid one-col">
-        <div class="chart-card"><h2>Reported Monthly Revenue by Entrepreneur <small>(MWK — highest to lowest)</small></h2><div class="chart-wrap chart-wrap-wide"><canvas id="chartRevenueBar"></canvas></div></div>
+        <div class="chart-card"><h2>Reported Monthly Revenue by Entrepreneur <small>(MWK — top 15)</small></h2><div class="chart-wrap chart-wrap-wide"><canvas id="chartRevenueBar"></canvas></div></div>
       </div>
       <div class="section-grid two-col">
-        <div class="chart-card"><h2>Revenue Variance <small>(|Reported − CommCare|, MWK)</small></h2><div class="chart-wrap"><canvas id="chartVariance"></canvas></div></div>
+        <div class="chart-card"><h2>Revenue Variance <small>(|Reported − CommCare|, MWK, top 15)</small></h2><div class="chart-wrap"><canvas id="chartVariance"></canvas></div></div>
         <div class="chart-card"><h2>Top 10 Incubators by Avg Revenue <small>(MWK)</small></h2><div class="chart-wrap"><canvas id="chartIncubatorRevenue"></canvas></div></div>
       </div>
     </section>
@@ -369,8 +436,8 @@
     <!-- JOBS -->
     <section class="dash-section" id="section-jobs">
       <div class="section-grid two-col">
-        <div class="chart-card"><h2>Direct Jobs by Gender</h2><div class="chart-wrap"><canvas id="chartDirectJobs"></canvas></div></div>
-        <div class="chart-card"><h2>Indirect Jobs by Gender</h2><div class="chart-wrap"><canvas id="chartIndirectJobs"></canvas></div></div>
+        <div class="chart-card"><h2>Direct Jobs by Gender <small>(top 15)</small></h2><div class="chart-wrap"><canvas id="chartDirectJobs"></canvas></div></div>
+        <div class="chart-card"><h2>Indirect Jobs by Gender <small>(top 15)</small></h2><div class="chart-wrap"><canvas id="chartIndirectJobs"></canvas></div></div>
       </div>
       <div class="section-grid one-col">
         <div class="chart-card"><h2>Total Jobs per Entrepreneur <small>(Direct + Indirect, top 15)</small></h2><div class="chart-wrap chart-wrap-wide"><canvas id="chartJobsPerBiz"></canvas></div></div>
@@ -381,7 +448,7 @@
     <section class="dash-section" id="section-sectors">
       <div class="section-grid two-col">
         <div class="chart-card"><h2>Business Sector Distribution</h2><div class="chart-wrap chart-wrap-donut"><canvas id="chartSectorDonut"></canvas></div></div>
-        <div class="chart-card"><h2>Sector Count <small>(sorted)</small></h2><div class="chart-wrap"><canvas id="chartSectorBar"></canvas></div></div>
+        <div class="chart-card"><h2>Sector Count <small>(sorted, top 15)</small></h2><div class="chart-wrap"><canvas id="chartSectorBar"></canvas></div></div>
       </div>
       <div class="section-grid one-col">
         <div class="chart-card"><h2>Entrepreneurs by District <small>(sorted)</small></h2><div class="chart-wrap chart-wrap-wide"><canvas id="chartDistrict"></canvas></div></div>
@@ -439,21 +506,26 @@
     const C = {
       navy: '#0d2136', gold: '#a8935a', cream: '#f4f2ef',
       gray: '#d3d6d9', white: '#ffffff',
+      axisColor: '#1a202c',
       palette: ['#0d2136','#1a3a5c','#2d5a3d','#a8935a','#c4ae76',
                 '#6b8f71','#8a7845','#3d7a6b','#d4a853','#4a6741',
                 '#7c6934','#1e5245','#b89d5e','#2e4a3e','#9c8650']
     };
 
     // ── Chart.js defaults ──
-    Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
-    Chart.defaults.color = '#4a5568';
+    Chart.defaults.font.family = "'Libre Franklin', 'Segoe UI', system-ui, sans-serif";
+    Chart.defaults.color = C.axisColor;
+    Chart.defaults.font.size = 12;
     Chart.defaults.plugins.legend.labels.usePointStyle = true;
     Chart.defaults.plugins.legend.labels.padding = 16;
-    Chart.defaults.plugins.tooltip.backgroundColor = '#0d2136';
-    Chart.defaults.plugins.tooltip.titleColor = '#f4f2ef';
-    Chart.defaults.plugins.tooltip.bodyColor = '#d3d6d9';
+    Chart.defaults.plugins.legend.labels.font = { family: "'Libre Franklin', sans-serif" };
+    Chart.defaults.plugins.tooltip.backgroundColor = C.navy;
+    Chart.defaults.plugins.tooltip.titleColor = C.cream;
+    Chart.defaults.plugins.tooltip.bodyColor = C.gray;
     Chart.defaults.plugins.tooltip.cornerRadius = 8;
     Chart.defaults.plugins.tooltip.padding = 12;
+    Chart.defaults.plugins.tooltip.titleFont = { family: "'Libre Franklin', sans-serif", weight: '600' };
+    Chart.defaults.plugins.tooltip.bodyFont = { family: "'Libre Franklin', sans-serif" };
     Chart.defaults.animation = { duration: 700, easing: 'easeOutQuart' };
 
     // ── Helpers ──
@@ -487,7 +559,6 @@
         const idx = headers.findIndex(h => norm(h) === c);
         if (idx >= 0) return idx;
       }
-      // partial match fallback
       for (const cand of candidates) {
         const c = norm(cand);
         const idx = headers.findIndex(h => norm(h).includes(c));
@@ -507,7 +578,6 @@
       let sector = sectorRaw.trim();
       if (/other/i.test(sector) && sectorOther) sector = sectorOther.trim();
 
-      // Finance type: check 4 checkbox columns
       let financeType = null;
       if (boolYes(get('financeAccess'))) {
         if (boolYes(get('finCommercial'))) financeType = 'Commercial';
@@ -556,7 +626,6 @@
       const headers = parsed.data[0];
       const rows = parsed.data.slice(1);
 
-      // Build column map
       const colMap = {
         id: findCol(headers, '1. Entrepreneur ID (CommCare):', 'Entrepreneur ID'),
         name: findCol(headers, '2. Business Name:', 'Business Name'),
@@ -592,81 +661,367 @@
       return rows.map(r => parseRow(r, headers, colMap)).filter(d => d.id);
     }
 
+    // ── Chart instance management ──
+    const chartInstances = new Map();
+
+    function destroyChart(canvasId) {
+      if (chartInstances.has(canvasId)) {
+        chartInstances.get(canvasId).destroy();
+        chartInstances.delete(canvasId);
+      }
+    }
+
+    function destroyAllCharts() {
+      chartInstances.forEach(chart => chart.destroy());
+      chartInstances.clear();
+    }
+
+    // ── Data label plugin ──
+    const dataLabelPlugin = {
+      id: 'dataLabels',
+      afterDatasetsDraw(chart) {
+        const ctx = chart.ctx;
+        chart.data.datasets.forEach((dataset, datasetIndex) => {
+          const meta = chart.getDatasetMeta(datasetIndex);
+          if (!meta.hidden) {
+            meta.data.forEach((element, index) => {
+              const value = dataset.data[index];
+              if (value === 0 || value === null || value === undefined) return;
+              
+              ctx.fillStyle = C.axisColor;
+              ctx.font = Chart.helpers.fontString(
+                chart.options.plugins?.datalabels?.font?.size || 10,
+                chart.options.plugins?.datalabels?.font?.weight || '600',
+                chart.options.plugins?.datalabels?.font?.family || "'Libre Franklin', sans-serif"
+              );
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              
+              const formattedValue = chart.options.plugins?.datalabels?.formatter 
+                ? chart.options.plugins.datalabels.formatter(value)
+                : value;
+              
+              if (chart.isHorizontal) {
+                const x = element.x + (value >= 0 ? 12 : -12);
+                const y = element.y;
+                ctx.textAlign = value >= 0 ? 'left' : 'right';
+                ctx.fillText(formattedValue, x, y);
+              } else {
+                const x = element.x;
+                const y = element.y - 10;
+                ctx.fillText(formattedValue, x, y);
+              }
+            });
+          }
+        });
+      }
+    };
+
+    Chart.register(dataLabelPlugin);
+
     // ── Chart builders ──
-    function makeBarChart(canvasId, labels, values, color) {
+    function makeHorizontalBarChart(canvasId, labels, values, color, title = '') {
+      destroyChart(canvasId);
       const ctx = document.getElementById(canvasId);
       if (!ctx) return;
-      new Chart(ctx, {
+      
+      const isMWK = title.includes('MWK') || title.includes('Revenue');
+      
+      const chart = new Chart(ctx, {
         type: 'bar',
         data: {
           labels,
           datasets: [{
             data: values,
             backgroundColor: color || C.gold,
-            borderRadius: 6, borderSkipped: false,
-            barPercentage: .7, categoryPercentage: .8
+            borderRadius: 6,
+            borderSkipped: false,
+            barPercentage: 0.7,
+            categoryPercentage: 0.8
           }]
         },
         options: {
-          responsive: true, maintainAspectRatio: false,
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
           plugins: {
             legend: { display: false },
-            tooltip: { callbacks: { label: ctx => fmtMWK(ctx.raw) } }
+            tooltip: { 
+              callbacks: { 
+                label: ctx => isMWK ? fmtMWK(ctx.raw) : String(ctx.raw) 
+              } 
+            },
+            datalabels: {
+              font: { size: 10, weight: '600', family: "'Libre Franklin', sans-serif" },
+              formatter: v => isMWK ? fmtMWK(v) : fmt(v)
+            }
           },
           scales: {
             x: {
-              grid: { display: false },
-              ticks: { maxRotation: 45, minRotation: 30, font: { size: window.innerWidth < 600 ? 9 : 11 } }
+              grid: { color: 'rgba(0,0,0,.05)' },
+              ticks: { 
+                color: C.axisColor,
+                callback: v => isMWK ? fmtMWK(v) : fmt(v),
+                font: { size: 11, weight: '500', family: "'Libre Franklin', sans-serif" }
+              }
             },
             y: {
-              grid: { color: 'rgba(0,0,0,.05)' },
-              ticks: { callback: v => fmt(v), font: { size: window.innerWidth < 600 ? 9 : 11 } }
+              grid: { display: false },
+              ticks: { 
+                color: C.axisColor,
+                font: { size: 11, weight: '500', family: "'Libre Franklin', sans-serif" },
+                maxRotation: 0
+              }
             }
           }
         }
       });
+      
+      chart.isHorizontal = true;
+      chartInstances.set(canvasId, chart);
+    }
+
+    function makeBarChart(canvasId, labels, values, color, title = '') {
+      destroyChart(canvasId);
+      const ctx = document.getElementById(canvasId);
+      if (!ctx) return;
+      
+      const isMWK = title.includes('MWK') || title.includes('Revenue');
+      
+      if (values.length > 5) {
+        return makeHorizontalBarChart(canvasId, labels, values, color, title);
+      }
+      
+      const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            data: values,
+            backgroundColor: color || C.gold,
+            borderRadius: 6,
+            borderSkipped: false,
+            barPercentage: 0.7,
+            categoryPercentage: 0.8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { 
+              callbacks: { 
+                label: ctx => isMWK ? fmtMWK(ctx.raw) : String(ctx.raw) 
+              } 
+            },
+            datalabels: {
+              font: { size: 10, weight: '600', family: "'Libre Franklin', sans-serif" },
+              formatter: v => isMWK ? fmtMWK(v) : fmt(v)
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { 
+                color: C.axisColor,
+                maxRotation: 0,
+                font: { size: 11, weight: '500', family: "'Libre Franklin', sans-serif" }
+              }
+            },
+            y: {
+              grid: { color: 'rgba(0,0,0,.05)' },
+              ticks: { 
+                color: C.axisColor,
+                callback: v => isMWK ? fmtMWK(v) : fmt(v),
+                font: { size: 11, weight: '500', family: "'Libre Franklin', sans-serif" }
+              }
+            }
+          }
+        }
+      });
+      
+      chart.isHorizontal = false;
+      chartInstances.set(canvasId, chart);
     }
 
     function makeDonutChart(canvasId, labels, values) {
+      destroyChart(canvasId);
       const ctx = document.getElementById(canvasId);
       if (!ctx) return;
-      const colors = labels.map((_,i) => C.palette[i % C.palette.length]);
-      new Chart(ctx, {
+      
+      let colors;
+      if (values.length === 2) {
+        colors = [C.navy, C.gold];
+      } else {
+        colors = labels.map((_,i) => C.palette[i % C.palette.length]);
+      }
+      
+      const total = values.reduce((a, b) => a + b, 0);
+      
+      const chart = new Chart(ctx, {
         type: 'doughnut',
         data: {
           labels,
           datasets: [{
-            data: values, backgroundColor: colors,
-            borderWidth: 2, borderColor: C.white, hoverOffset: 8
+            data: values,
+            backgroundColor: colors,
+            borderWidth: 2,
+            borderColor: C.white,
+            hoverOffset: 8
           }]
         },
         options: {
-          responsive: true, maintainAspectRatio: false, cutout: '55%',
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '55%',
           plugins: {
-            legend: { position: 'bottom', labels: { font: { size: window.innerWidth < 600 ? 10 : 12 }, padding: 12 } }
+            legend: { 
+              position: 'bottom', 
+              labels: { 
+                font: { size: 12, family: "'Libre Franklin', sans-serif" },
+                padding: 12,
+                color: C.axisColor
+              } 
+            },
+            tooltip: {
+              callbacks: {
+                label: ctx => {
+                  const value = ctx.raw;
+                  const percentage = ((value / total) * 100).toFixed(1);
+                  return `${ctx.label}: ${value} (${percentage}%)`;
+                }
+              }
+            },
+            datalabels: {
+              font: { size: 12, weight: '700', family: "'Libre Franklin', sans-serif" },
+              formatter: v => {
+                const pct = ((v / total) * 100).toFixed(1);
+                return `${v} (${pct}%)`;
+              }
+            }
           }
         }
       });
+      
+      chartInstances.set(canvasId, chart);
     }
 
-    function makeGroupedBar(canvasId, labels, datasets) {
+    function makeGroupedBar(canvasId, labels, datasets, title = '') {
+      destroyChart(canvasId);
       const ctx = document.getElementById(canvasId);
       if (!ctx) return;
-      new Chart(ctx, {
-        type: 'bar',
-        data: { labels, datasets },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'top' },
-            tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw } }
-          },
-          scales: {
-            x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: window.innerWidth<600?9:11 } } },
-            y: { grid: { color:'rgba(0,0,0,.05)' }, ticks: { font: { size: window.innerWidth<600?9:11 } } }
+      
+      const maxValue = Math.max(...datasets.flatMap(ds => ds.data));
+      
+      if (labels.length > 5) {
+        const chart = new Chart(ctx, {
+          type: 'bar',
+          data: { labels, datasets: datasets.map(ds => ({
+            ...ds,
+            borderRadius: 6,
+            barPercentage: 0.7,
+            categoryPercentage: 0.8,
+            borderSkipped: false
+          })) },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { 
+                position: 'top',
+                labels: {
+                  font: { family: "'Libre Franklin', sans-serif" },
+                  color: C.axisColor
+                }
+              },
+              tooltip: { 
+                callbacks: { 
+                  label: ctx => `${ctx.dataset.label}: ${ctx.raw}` 
+                } 
+              },
+              datalabels: {
+                font: { size: 10, weight: '600', family: "'Libre Franklin', sans-serif" },
+                formatter: v => v
+              }
+            },
+            scales: {
+              x: { 
+                grid: { color: 'rgba(0,0,0,.05)' },
+                ticks: { 
+                  color: C.axisColor,
+                  font: { size: 11, weight: '500', family: "'Libre Franklin', sans-serif" }
+                }
+              },
+              y: { 
+                grid: { display: false },
+                ticks: { 
+                  color: C.axisColor,
+                  font: { size: 11, weight: '500', family: "'Libre Franklin', sans-serif" },
+                  maxRotation: 0
+                }
+              }
+            }
           }
-        }
-      });
+        });
+        
+        chart.isHorizontal = true;
+        chartInstances.set(canvasId, chart);
+      } else {
+        const chart = new Chart(ctx, {
+          type: 'bar',
+          data: { labels, datasets: datasets.map(ds => ({
+            ...ds,
+            borderRadius: 6,
+            barPercentage: 0.7,
+            categoryPercentage: 0.8,
+            borderSkipped: false
+          })) },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { 
+                position: 'top',
+                labels: {
+                  font: { family: "'Libre Franklin', sans-serif" },
+                  color: C.axisColor
+                }
+              },
+              tooltip: { 
+                callbacks: { 
+                  label: ctx => `${ctx.dataset.label}: ${ctx.raw}` 
+                } 
+              },
+              datalabels: {
+                font: { size: 10, weight: '600', family: "'Libre Franklin', sans-serif" },
+                formatter: v => v
+              }
+            },
+            scales: {
+              x: { 
+                grid: { display: false },
+                ticks: { 
+                  color: C.axisColor,
+                  maxRotation: 0,
+                  font: { size: 11, weight: '500', family: "'Libre Franklin', sans-serif" }
+                }
+              },
+              y: { 
+                grid: { color: 'rgba(0,0,0,.05)' },
+                ticks: { 
+                  color: C.axisColor,
+                  font: { size: 11, weight: '500', family: "'Libre Franklin', sans-serif" }
+                }
+              }
+            }
+          }
+        });
+        
+        chart.isHorizontal = false;
+        chartInstances.set(canvasId, chart);
+      }
     }
 
     // ── KPIs ──
@@ -677,13 +1032,14 @@
       const females = DATA.filter(d => d.gender === 'Female').length;
       const finance = DATA.filter(d => d.financeAccess).length;
       const registered = DATA.filter(d => d.registered).length;
+      const registeredPct = Math.round(registered / total * 100);
 
       $('#kpiTotal').textContent = total;
       $('#kpiOperational').textContent = operational;
       $('#kpiDirectJobs').textContent = directJobs;
       $('#kpiFemale').textContent = females + ' (' + Math.round(females/total*100) + '%)';
       $('#kpiFinance').textContent = finance;
-      $('#kpiRegistered').textContent = registered;
+      $('#kpiRegistered').textContent = registeredPct + '%';
     }
 
     // ── Section renderers ──
@@ -691,27 +1047,33 @@
       const sorted = [...DATA].sort((a,b) => b.reportedRev - a.reportedRev).slice(0,15);
       const labels = sorted.map(d => d.name.length > 22 ? d.name.slice(0,20)+'…' : d.name);
       makeGroupedBar('chartRevenueCompare', labels, [
-        { label:'CommCare (MWK)', data: sorted.map(d=>d.commcareRev), backgroundColor: C.navy, borderRadius:6, barPercentage:.7 },
-        { label:'Reported (MWK)', data: sorted.map(d=>d.reportedRev), backgroundColor: C.gold, borderRadius:6, barPercentage:.7 }
+        { label:'CommCare (MWK)', data: sorted.map(d=>d.commcareRev), backgroundColor: C.navy },
+        { label:'Reported (MWK)', data: sorted.map(d=>d.reportedRev), backgroundColor: C.gold }
       ]);
+      
       const g = aggregateCounts(DATA, 'gender');
       makeDonutChart('chartGender', g.labels, g.values);
+      
       const loc = aggregateCounts(DATA, 'location');
-      makeBarChart('chartLocation', loc.labels, loc.values, C.navy);
+      makeBarChart('chartLocation', loc.labels, loc.values, C.navy, 'Location');
+      
       const stg = aggregateCounts(DATA, 'stage');
-      makeBarChart('chartIncubation', stg.labels, stg.values, C.gold);
+      makeBarChart('chartIncubation', stg.labels, stg.values, C.gold, 'Stage');
+      
+      const inc = aggregateCounts(DATA, 'incubator');
+      makeBarChart('chartIncubatorDist', inc.labels, inc.values, C.navy, 'Incubator');
     }
 
     function renderRevenue(DATA) {
-      const active = DATA.filter(d => d.reportedRev > 0).sort((a,b) => b.reportedRev - a.reportedRev);
-      makeBarChart('chartRevenueBar',
+      const active = DATA.filter(d => d.reportedRev > 0).sort((a,b) => b.reportedRev - a.reportedRev).slice(0,15);
+      makeHorizontalBarChart('chartRevenueBar',
         active.map(d => d.name.length > 20 ? d.name.slice(0,18)+'…' : d.name),
-        active.map(d=>d.reportedRev), C.navy);
+        active.map(d=>d.reportedRev), C.navy, 'Revenue');
 
-      const withVar = DATA.filter(d => d.variance !== 0).sort((a,b) => Math.abs(b.variance) - Math.abs(a.variance));
-      makeBarChart('chartVariance',
+      const withVar = DATA.filter(d => d.variance !== 0).sort((a,b) => Math.abs(b.variance) - Math.abs(a.variance)).slice(0,15);
+      makeHorizontalBarChart('chartVariance',
         withVar.map(d => d.name.length > 18 ? d.name.slice(0,16)+'…' : d.name),
-        withVar.map(d => Math.abs(d.variance)), C.gold);
+        withVar.map(d => Math.abs(d.variance)), C.gold, 'Variance');
 
       const incGroups = {};
       DATA.forEach(d => {
@@ -721,9 +1083,9 @@
       const incAvg = Object.entries(incGroups).map(([k,v]) => ({
         label: k, value: Math.round(v.reduce((a,b)=>a+b,0) / v.length)
       })).sort((a,b) => b.value - a.value).slice(0,10);
-      makeBarChart('chartIncubatorRevenue',
+      makeHorizontalBarChart('chartIncubatorRevenue',
         incAvg.map(d => d.label.length > 22 ? d.label.slice(0,20)+'…' : d.label),
-        incAvg.map(d => d.value), C.navy);
+        incAvg.map(d => d.value), C.navy, 'Incubator Revenue');
     }
 
     function renderJobs(DATA) {
@@ -731,65 +1093,81 @@
       makeGroupedBar('chartDirectJobs',
         directSorted.map(d => d.name.length>18?d.name.slice(0,16)+'…':d.name),
         [
-          { label:'Male', data: directSorted.map(d=>d.directJobs - d.femaleDirect), backgroundColor: C.navy, borderRadius:6 },
-          { label:'Female', data: directSorted.map(d=>d.femaleDirect), backgroundColor: C.gold, borderRadius:6 }
-        ]);
+          { label:'Male', data: directSorted.map(d=>d.directJobs - d.femaleDirect), backgroundColor: C.navy },
+          { label:'Female', data: directSorted.map(d=>d.femaleDirect), backgroundColor: C.gold }
+        ], 'Direct Jobs');
 
       const indirectSorted = [...DATA].filter(d=>d.indirectJobs>0).sort((a,b)=>b.indirectJobs-a.indirectJobs).slice(0,15);
       makeGroupedBar('chartIndirectJobs',
         indirectSorted.map(d => d.name.length>18?d.name.slice(0,16)+'…':d.name),
         [
-          { label:'Male', data: indirectSorted.map(d=>d.indirectJobs - d.femaleIndirect), backgroundColor: C.navy, borderRadius:6 },
-          { label:'Female', data: indirectSorted.map(d=>d.femaleIndirect), backgroundColor: C.gold, borderRadius:6 }
-        ]);
+          { label:'Male', data: indirectSorted.map(d=>d.indirectJobs - d.femaleIndirect), backgroundColor: C.navy },
+          { label:'Female', data: indirectSorted.map(d=>d.femaleIndirect), backgroundColor: C.gold }
+        ], 'Indirect Jobs');
 
       const totalJobs = DATA.map(d => ({...d, total: d.directJobs+d.indirectJobs}))
         .filter(d=>d.total>0).sort((a,b)=>b.total-a.total).slice(0,15);
-      makeBarChart('chartJobsPerBiz',
+      makeHorizontalBarChart('chartJobsPerBiz',
         totalJobs.map(d => d.name.length>20?d.name.slice(0,18)+'…':d.name),
-        totalJobs.map(d=>d.total), C.gold);
+        totalJobs.map(d=>d.total), C.gold, 'Jobs');
     }
 
     function renderSectors(DATA) {
       const sec = aggregateCounts(DATA, 'sector');
       makeDonutChart('chartSectorDonut', sec.labels, sec.values);
-      makeBarChart('chartSectorBar', sec.labels, sec.values, C.navy);
+      
+      const secSliced = sec.labels.slice(0, 15).map((l, i) => ({label: l, value: sec.values[i]}));
+      makeHorizontalBarChart('chartSectorBar', 
+        secSliced.map(d => d.label), 
+        secSliced.map(d => d.value), 
+        C.navy, 'Sector');
+      
       const dist = aggregateCounts(DATA, 'district');
-      makeBarChart('chartDistrict', dist.labels, dist.values, C.gold);
+      makeBarChart('chartDistrict', dist.labels, dist.values, C.gold, 'District');
     }
 
     function renderFinance(DATA) {
       const access = { 'Yes':0, 'No':0 };
       DATA.forEach(d => { d.financeAccess ? access['Yes']++ : access['No']++; });
-      const accessSorted = sortDesc(Object.keys(access), Object.values(access));
-      makeDonutChart('chartFinanceAccess', accessSorted.labels, accessSorted.values);
+      const accessLabels = Object.keys(access);
+      const accessValues = Object.values(access);
+      makeDonutChart('chartFinanceAccess', accessLabels, accessValues);
 
       const types = {};
       DATA.filter(d=>d.financeType).forEach(d => { types[d.financeType] = (types[d.financeType]||0)+1; });
       const typesSorted = sortDesc(Object.keys(types), Object.values(types));
-      makeBarChart('chartFinanceTypes', typesSorted.labels, typesSorted.values, C.navy);
+      makeBarChart('chartFinanceTypes', typesSorted.labels, typesSorted.values, C.navy, 'Finance Types');
 
       const inc = { 'Yes':0, 'No':0 };
       DATA.forEach(d => { d.revenueIncrease ? inc['Yes']++ : inc['No']++; });
-      const incSorted = sortDesc(Object.keys(inc), Object.values(inc));
-      makeDonutChart('chartRevenueIncrease', incSorted.labels, incSorted.values);
+      const incLabels = Object.keys(inc);
+      const incValues = Object.values(inc);
+      makeDonutChart('chartRevenueIncrease', incLabels, incValues);
     }
 
     function renderIntegrity(DATA) {
       const conf = aggregateCounts(DATA, 'confidence');
-      makeBarChart('chartConfidence', conf.labels, conf.values, C.navy);
+      makeBarChart('chartConfidence', conf.labels, conf.values, C.navy, 'Confidence');
+      
       const rec = aggregateCounts(DATA, 'records');
-      makeBarChart('chartRecords', rec.labels, rec.values, C.gold);
+      makeBarChart('chartRecords', rec.labels, rec.values, C.gold, 'Records');
+      
       const con = aggregateCounts(DATA, 'consistency');
-      makeBarChart('chartConsistency', con.labels, con.values, C.navy);
+      makeBarChart('chartConsistency', con.labels, con.values, C.navy, 'Consistency');
+      
       const trans = aggregateCounts(DATA, 'transparency');
-      makeBarChart('chartTransparency', trans.labels, trans.values, C.gold);
+      makeBarChart('chartTransparency', trans.labels, trans.values, C.gold, 'Transparency');
     }
 
     const sectionRenderers = {
-      overview: renderOverview, revenue: renderRevenue, jobs: renderJobs,
-      sectors: renderSectors, finance: renderFinance, integrity: renderIntegrity
+      overview: renderOverview, 
+      revenue: renderRevenue, 
+      jobs: renderJobs,
+      sectors: renderSectors, 
+      finance: renderFinance, 
+      integrity: renderIntegrity
     };
+    
     const rendered = new Set();
     let DATA_CACHE = null;
 
@@ -797,24 +1175,72 @@
       $$('.dash-section').forEach(s => s.classList.remove('active'));
       const el = $(`#section-${name}`);
       if (el) el.classList.add('active');
-      $$('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.section === name));
-      if (!rendered.has(name) && sectionRenderers[name] && DATA_CACHE) {
+      
+      $$('.nav-btn').forEach(b => {
+        const isActive = b.dataset.section === name;
+        b.classList.toggle('active', isActive);
+      });
+      
+      if (DATA_CACHE && sectionRenderers[name]) {
         sectionRenderers[name](DATA_CACHE);
         rendered.add(name);
       }
+      
       $('#mobileDrawer').classList.remove('open');
       $('#drawerOverlay').classList.remove('open');
+    }
+
+    // ── Mobile navigation improvements ──
+    function initMobileNav() {
+      const hamburger = $('#hamburger');
+      const drawer = $('#mobileDrawer');
+      const overlay = $('#drawerOverlay');
+      
+      hamburger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        drawer.classList.toggle('open');
+        overlay.classList.toggle('open');
+      });
+      
+      overlay.addEventListener('click', () => {
+        drawer.classList.remove('open');
+        overlay.classList.remove('open');
+      });
+      
+      drawer.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          switchSection(btn.dataset.section);
+        });
+      });
+      
+      document.addEventListener('click', (e) => {
+        if (!drawer.contains(e.target) && !hamburger.contains(e.target)) {
+          drawer.classList.remove('open');
+          overlay.classList.remove('open');
+        }
+      });
+      
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 900) {
+          drawer.classList.remove('open');
+          overlay.classList.remove('open');
+        }
+      });
     }
 
     // ── Boot ──
     async function boot() {
       const loader = $('#appLoader');
       const errorEl = $('#loaderError');
+      
       try {
         DATA_CACHE = await loadCSV();
         if (!DATA_CACHE.length) throw new Error('No valid rows found in data.csv');
+        
         renderKPIs(DATA_CACHE);
+        initMobileNav();
         switchSection('overview');
+        
         loader.classList.add('hidden');
         setTimeout(() => loader.remove(), 500);
       } catch (err) {
@@ -824,17 +1250,10 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      $$('.nav-btn').forEach(btn => {
+      $$('.header-nav .nav-btn').forEach(btn => {
         btn.addEventListener('click', () => switchSection(btn.dataset.section));
       });
-      $('#hamburger').addEventListener('click', () => {
-        $('#mobileDrawer').classList.toggle('open');
-        $('#drawerOverlay').classList.toggle('open');
-      });
-      $('#drawerOverlay').addEventListener('click', () => {
-        $('#mobileDrawer').classList.remove('open');
-        $('#drawerOverlay').classList.remove('open');
-      });
+      
       boot();
     });
   })();
