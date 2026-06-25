@@ -226,9 +226,8 @@
       line-height: 1.1;
     }
 
-    .dash-section { display: none; animation: fadeIn .35s ease; }
+    .dash-section { display: none; }
     .dash-section.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
     .section-grid { display: grid; gap: 20px; margin-bottom: 20px; }
     .section-grid.one-col { grid-template-columns: 1fr; }
@@ -497,7 +496,7 @@
     Chart.defaults.plugins.tooltip.padding = 12;
     Chart.defaults.plugins.tooltip.titleFont = { family: "'Libre Franklin', sans-serif", weight: '600' };
     Chart.defaults.plugins.tooltip.bodyFont = { family: "'Libre Franklin', sans-serif" };
-    Chart.defaults.animation = { duration: 700, easing: 'easeOutQuart' };
+    Chart.defaults.animation = false;
 
     const $ = s => document.querySelector(s);
     const $$ = s => document.querySelectorAll(s);
@@ -628,207 +627,74 @@
       return rows.map(r => parseRow(r, headers, colMap)).filter(d => d.id);
     }
 
-    const chartInstances = new Map();
-
-    function destroyChart(canvasId) {
-      if (chartInstances.has(canvasId)) {
-        try {
-          const chart = chartInstances.get(canvasId);
-          if (chart && typeof chart.destroy === 'function') {
-            chart.destroy();
-          }
-        } catch (e) {
-          console.warn('Error destroying chart:', canvasId, e);
-        }
-        chartInstances.delete(canvasId);
-      }
-    }
-
-    // Data label plugin - only draws labels, no options access
-    const dataLabelPlugin = {
-      id: 'dataLabels',
-      afterDatasetsDraw(chart) {
-        if (chart.config.type === 'doughnut' || chart.config.type === 'pie') return;
-        
-        const ctx = chart.ctx;
-        chart.data.datasets.forEach((dataset, datasetIndex) => {
-          const meta = chart.getDatasetMeta(datasetIndex);
-          if (meta.hidden) return;
-          
-          meta.data.forEach((element, index) => {
-            const value = dataset.data[index];
-            if (value === 0 || value === null || value === undefined) return;
-            
-            let formattedValue = value;
-            if (typeof dataset._labelFormatter === 'function') {
-              try {
-                formattedValue = dataset._labelFormatter(value);
-              } catch (e) {
-                formattedValue = String(value);
-              }
-            } else {
-              formattedValue = String(value);
-            }
-            
-            ctx.fillStyle = C.axisColor;
-            ctx.font = Chart.helpers.fontString(10, '600', "'Libre Franklin', sans-serif");
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            
-            if (chart.isHorizontal) {
-              const x = element.x + (value >= 0 ? 15 : -15);
-              const y = element.y;
-              ctx.textAlign = value >= 0 ? 'left' : 'right';
-              ctx.fillText(formattedValue, x, y);
-            } else {
-              const x = element.x;
-              const y = element.y - 12;
-              ctx.fillText(formattedValue, x, y);
-            }
-          });
-        });
-      }
-    };
-
-    // Only register if not already registered
-    if (!Chart.registry.plugins.get('dataLabels')) {
-      Chart.register(dataLabelPlugin);
-    }
-
-    function makeHorizontalBarChart(canvasId, labels, values, color, title = '') {
-      destroyChart(canvasId);
+    // Simple horizontal bar chart
+    function makeHBar(canvasId, labels, values, color, isMWK) {
       const ctx = document.getElementById(canvasId);
-      if (!ctx) return;
-      
-      const isMWK = title.includes('MWK') || title.includes('Revenue');
-      
-      const chart = new Chart(ctx, {
+      if (!ctx || !labels.length) return;
+      new Chart(ctx, {
         type: 'bar',
         data: {
           labels,
           datasets: [{
             data: values,
-            backgroundColor: color || C.gold,
-            borderRadius: 6,
-            borderSkipped: false,
-            barPercentage: 0.7,
-            categoryPercentage: 0.8,
-            _labelFormatter: isMWK ? fmtMWK : fmt
+            backgroundColor: color,
+            borderRadius: 6
           }]
         },
         options: {
           indexAxis: 'y',
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: { 
-              callbacks: { 
-                label: ctx => isMWK ? fmtMWK(ctx.raw) : String(ctx.raw) 
-              } 
-            }
-          },
+          plugins: { legend: { display: false } },
           scales: {
             x: {
-              grid: { color: 'rgba(0,0,0,.05)' },
-              ticks: { 
-                color: C.axisColor,
-                callback: v => isMWK ? fmtMWK(v) : fmt(v),
-                font: { size: 11, weight: '500', family: "'Libre Franklin', sans-serif" }
-              }
+              ticks: { color: C.axisColor, callback: v => isMWK ? fmtMWK(v) : v }
             },
             y: {
-              grid: { display: false },
-              ticks: { 
-                color: C.axisColor,
-                font: { size: 11, weight: '500', family: "'Libre Franklin', sans-serif" },
-                maxRotation: 0
-              }
+              ticks: { color: C.axisColor }
             }
           }
         }
       });
-      
-      chart.isHorizontal = true;
-      chartInstances.set(canvasId, chart);
     }
 
-    function makeBarChart(canvasId, labels, values, color, title = '') {
-      destroyChart(canvasId);
+    // Simple vertical bar chart
+    function makeVBar(canvasId, labels, values, color, isMWK) {
       const ctx = document.getElementById(canvasId);
-      if (!ctx) return;
-      
-      const isMWK = title.includes('MWK') || title.includes('Revenue');
-      
-      if (values.length > 5) {
-        return makeHorizontalBarChart(canvasId, labels, values, color, title);
-      }
-      
-      const chart = new Chart(ctx, {
+      if (!ctx || !labels.length) return;
+      new Chart(ctx, {
         type: 'bar',
         data: {
           labels,
           datasets: [{
             data: values,
-            backgroundColor: color || C.gold,
-            borderRadius: 6,
-            borderSkipped: false,
-            barPercentage: 0.7,
-            categoryPercentage: 0.8,
-            _labelFormatter: isMWK ? fmtMWK : fmt
+            backgroundColor: color,
+            borderRadius: 6
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: { 
-              callbacks: { 
-                label: ctx => isMWK ? fmtMWK(ctx.raw) : String(ctx.raw) 
-              } 
-            }
-          },
+          plugins: { legend: { display: false } },
           scales: {
             x: {
-              grid: { display: false },
-              ticks: { 
-                color: C.axisColor,
-                maxRotation: 0,
-                font: { size: 11, weight: '500', family: "'Libre Franklin', sans-serif" }
-              }
+              ticks: { color: C.axisColor, maxRotation: 0 }
             },
             y: {
-              grid: { color: 'rgba(0,0,0,.05)' },
-              ticks: { 
-                color: C.axisColor,
-                callback: v => isMWK ? fmtMWK(v) : fmt(v),
-                font: { size: 11, weight: '500', family: "'Libre Franklin', sans-serif" }
-              }
+              ticks: { color: C.axisColor, callback: v => isMWK ? fmtMWK(v) : v }
             }
           }
         }
       });
-      
-      chart.isHorizontal = false;
-      chartInstances.set(canvasId, chart);
     }
 
-    function makeDonutChart(canvasId, labels, values) {
-      destroyChart(canvasId);
+    // Simple doughnut chart
+    function makeDonut(canvasId, labels, values) {
       const ctx = document.getElementById(canvasId);
-      if (!ctx) return;
-      
-      let colors;
-      if (values.length === 2) {
-        colors = [C.navy, C.gold];
-      } else {
-        colors = labels.map((_,i) => C.palette[i % C.palette.length]);
-      }
-      
-      const total = values.reduce((a, b) => a + b, 0);
-      
-      const chart = new Chart(ctx, {
+      if (!ctx || !labels.length) return;
+      const colors = values.length === 2 ? [C.navy, C.gold] : labels.map((_,i) => C.palette[i % C.palette.length]);
+      const total = values.reduce((a,b) => a+b, 0);
+      new Chart(ctx, {
         type: 'doughnut',
         data: {
           labels,
@@ -836,8 +702,7 @@
             data: values,
             backgroundColor: colors,
             borderWidth: 2,
-            borderColor: C.white,
-            hoverOffset: 8
+            borderColor: C.white
           }]
         },
         options: {
@@ -845,146 +710,58 @@
           maintainAspectRatio: false,
           cutout: '55%',
           plugins: {
-            legend: { 
-              position: 'bottom', 
-              labels: { 
+            legend: {
+              position: 'bottom',
+              labels: {
                 font: { size: 12, family: "'Libre Franklin', sans-serif" },
-                padding: 12,
                 color: C.axisColor,
                 generateLabels: function(chart) {
-                  const data = chart.data;
-                  return data.labels.map((label, i) => ({
-                    text: `${label}: ${data.datasets[0].data[i]} (${((data.datasets[0].data[i] / total) * 100).toFixed(1)}%)`,
-                    fillStyle: data.datasets[0].backgroundColor[i],
+                  return chart.data.labels.map((label, i) => ({
+                    text: `${label}: ${chart.data.datasets[0].data[i]} (${((chart.data.datasets[0].data[i]/total)*100).toFixed(1)}%)`,
+                    fillStyle: chart.data.datasets[0].backgroundColor[i],
                     hidden: false,
                     index: i
                   }));
-                }
-              } 
-            },
-            tooltip: {
-              callbacks: {
-                label: ctx => {
-                  const value = ctx.raw;
-                  const percentage = ((value / total) * 100).toFixed(1);
-                  return `${ctx.label}: ${value} (${percentage}%)`;
                 }
               }
             }
           }
         }
       });
-      
-      chartInstances.set(canvasId, chart);
     }
 
-    function makeGroupedBar(canvasId, labels, datasets, title = '') {
-      destroyChart(canvasId);
+    // Simple grouped bar
+    function makeGrouped(canvasId, labels, datasets, isHorizontal) {
       const ctx = document.getElementById(canvasId);
-      if (!ctx) return;
-      
-      const processedDatasets = datasets.map(ds => ({
-        label: ds.label,
-        data: ds.data,
-        backgroundColor: ds.backgroundColor,
-        borderRadius: 6,
-        barPercentage: 0.7,
-        categoryPercentage: 0.8,
-        borderSkipped: false,
-        _labelFormatter: fmt
-      }));
-      
-      if (labels.length > 5) {
-        const chart = new Chart(ctx, {
-          type: 'bar',
-          data: { labels, datasets: processedDatasets },
-          options: {
-            indexAxis: 'y',
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { 
-                position: 'top',
-                labels: {
-                  font: { family: "'Libre Franklin', sans-serif" },
-                  color: C.axisColor
-                }
-              },
-              tooltip: { 
-                callbacks: { 
-                  label: ctx => `${ctx.dataset.label}: ${ctx.raw}` 
-                } 
-              }
+      if (!ctx || !labels.length) return;
+      new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets: datasets.map(ds => ({ ...ds, borderRadius: 6 })) },
+        options: {
+          indexAxis: isHorizontal ? 'y' : 'x',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: { font: { family: "'Libre Franklin', sans-serif" }, color: C.axisColor }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: C.axisColor, maxRotation: isHorizontal ? 0 : 0 }
             },
-            scales: {
-              x: { 
-                grid: { color: 'rgba(0,0,0,.05)' },
-                ticks: { 
-                  color: C.axisColor,
-                  font: { size: 11, weight: '500', family: "'Libre Franklin', sans-serif" }
-                }
-              },
-              y: { 
-                grid: { display: false },
-                ticks: { 
-                  color: C.axisColor,
-                  font: { size: 11, weight: '500', family: "'Libre Franklin', sans-serif" },
-                  maxRotation: 0
-                }
-              }
+            y: {
+              ticks: { color: C.axisColor }
             }
           }
-        });
-        
-        chart.isHorizontal = true;
-        chartInstances.set(canvasId, chart);
-      } else {
-        const chart = new Chart(ctx, {
-          type: 'bar',
-          data: { labels, datasets: processedDatasets },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { 
-                position: 'top',
-                labels: {
-                  font: { family: "'Libre Franklin', sans-serif" },
-                  color: C.axisColor
-                }
-              },
-              tooltip: { 
-                callbacks: { 
-                  label: ctx => `${ctx.dataset.label}: ${ctx.raw}` 
-                } 
-              }
-            },
-            scales: {
-              x: { 
-                grid: { display: false },
-                ticks: { 
-                  color: C.axisColor,
-                  maxRotation: 0,
-                  font: { size: 11, weight: '500', family: "'Libre Franklin', sans-serif" }
-                }
-              },
-              y: { 
-                grid: { color: 'rgba(0,0,0,.05)' },
-                ticks: { 
-                  color: C.axisColor,
-                  font: { size: 11, weight: '500', family: "'Libre Franklin', sans-serif" }
-                }
-              }
-            }
-          }
-        });
-        
-        chart.isHorizontal = false;
-        chartInstances.set(canvasId, chart);
-      }
+        }
+      });
     }
 
-    function renderKPIs(DATA) {
+    // ── RENDER EVERYTHING ONCE ──
+    function renderAllCharts(DATA) {
+      // KPIs
       const total = DATA.length;
       const operational = DATA.filter(d => d.operational).length;
       const directJobs = DATA.reduce((s,d) => s + d.directJobs, 0);
@@ -999,39 +776,42 @@
       $('#kpiFemale').textContent = females + ' (' + Math.round(females/total*100) + '%)';
       $('#kpiFinance').textContent = finance;
       $('#kpiRegistered').textContent = registeredPct + '%';
-    }
 
-    function renderOverview(DATA) {
-      const sorted = [...DATA].sort((a,b) => b.reportedRev - a.reportedRev).slice(0,15);
-      const labels = sorted.map(d => d.name.length > 22 ? d.name.slice(0,20)+'…' : d.name);
-      makeGroupedBar('chartRevenueCompare', labels, [
-        { label:'CommCare (MWK)', data: sorted.map(d=>d.commcareRev), backgroundColor: C.navy },
-        { label:'Reported (MWK)', data: sorted.map(d=>d.reportedRev), backgroundColor: C.gold }
-      ]);
-      
+      // OVERVIEW
+      const revSorted = [...DATA].sort((a,b) => b.reportedRev - a.reportedRev).slice(0,15);
+      makeGrouped('chartRevenueCompare',
+        revSorted.map(d => d.name.length > 20 ? d.name.slice(0,18)+'…' : d.name),
+        [
+          { label: 'CommCare (MWK)', data: revSorted.map(d=>d.commcareRev), backgroundColor: C.navy },
+          { label: 'Reported (MWK)', data: revSorted.map(d=>d.reportedRev), backgroundColor: C.gold }
+        ],
+        revSorted.length > 5
+      );
+
       const g = aggregateCounts(DATA, 'gender');
-      makeDonutChart('chartGender', g.labels, g.values);
-      
-      const loc = aggregateCounts(DATA, 'location');
-      makeBarChart('chartLocation', loc.labels, loc.values, C.navy, 'Location');
-      
-      const stg = aggregateCounts(DATA, 'stage');
-      makeBarChart('chartIncubation', stg.labels, stg.values, C.gold, 'Stage');
-      
-      const inc = aggregateCounts(DATA, 'incubator');
-      makeBarChart('chartIncubatorDist', inc.labels, inc.values, C.navy, 'Incubator');
-    }
+      makeDonut('chartGender', g.labels, g.values);
 
-    function renderRevenue(DATA) {
+      const loc = aggregateCounts(DATA, 'location');
+      if (loc.values.length > 5) makeHBar('chartLocation', loc.labels, loc.values, C.navy, false);
+      else makeVBar('chartLocation', loc.labels, loc.values, C.navy, false);
+
+      const stg = aggregateCounts(DATA, 'stage');
+      if (stg.values.length > 5) makeHBar('chartIncubation', stg.labels, stg.values, C.gold, false);
+      else makeVBar('chartIncubation', stg.labels, stg.values, C.gold, false);
+
+      const inc = aggregateCounts(DATA, 'incubator');
+      makeHBar('chartIncubatorDist', inc.labels, inc.values, C.navy, false);
+
+      // REVENUE
       const active = DATA.filter(d => d.reportedRev > 0).sort((a,b) => b.reportedRev - a.reportedRev).slice(0,15);
-      makeHorizontalBarChart('chartRevenueBar',
+      makeHBar('chartRevenueBar',
         active.map(d => d.name.length > 20 ? d.name.slice(0,18)+'…' : d.name),
-        active.map(d=>d.reportedRev), C.navy, 'Revenue');
+        active.map(d=>d.reportedRev), C.navy, true);
 
       const withVar = DATA.filter(d => d.variance !== 0).sort((a,b) => Math.abs(b.variance) - Math.abs(a.variance)).slice(0,15);
-      makeHorizontalBarChart('chartVariance',
+      makeHBar('chartVariance',
         withVar.map(d => d.name.length > 18 ? d.name.slice(0,16)+'…' : d.name),
-        withVar.map(d => Math.abs(d.variance)), C.gold, 'Variance');
+        withVar.map(d => Math.abs(d.variance)), C.gold, true);
 
       const incGroups = {};
       DATA.forEach(d => {
@@ -1041,114 +821,92 @@
       const incAvg = Object.entries(incGroups).map(([k,v]) => ({
         label: k, value: Math.round(v.reduce((a,b)=>a+b,0) / v.length)
       })).sort((a,b) => b.value - a.value).slice(0,10);
-      makeHorizontalBarChart('chartIncubatorRevenue',
+      makeHBar('chartIncubatorRevenue',
         incAvg.map(d => d.label.length > 22 ? d.label.slice(0,20)+'…' : d.label),
-        incAvg.map(d => d.value), C.navy, 'Incubator Revenue');
-    }
+        incAvg.map(d => d.value), C.navy, true);
 
-    function renderJobs(DATA) {
+      // JOBS
       const directSorted = [...DATA].filter(d=>d.directJobs>0).sort((a,b)=>b.directJobs-a.directJobs).slice(0,15);
-      makeGroupedBar('chartDirectJobs',
+      makeGrouped('chartDirectJobs',
         directSorted.map(d => d.name.length>18?d.name.slice(0,16)+'…':d.name),
         [
           { label:'Male', data: directSorted.map(d=>d.directJobs - d.femaleDirect), backgroundColor: C.navy },
           { label:'Female', data: directSorted.map(d=>d.femaleDirect), backgroundColor: C.gold }
-        ], 'Direct Jobs');
+        ],
+        directSorted.length > 5
+      );
 
       const indirectSorted = [...DATA].filter(d=>d.indirectJobs>0).sort((a,b)=>b.indirectJobs-a.indirectJobs).slice(0,15);
-      makeGroupedBar('chartIndirectJobs',
+      makeGrouped('chartIndirectJobs',
         indirectSorted.map(d => d.name.length>18?d.name.slice(0,16)+'…':d.name),
         [
           { label:'Male', data: indirectSorted.map(d=>d.indirectJobs - d.femaleIndirect), backgroundColor: C.navy },
           { label:'Female', data: indirectSorted.map(d=>d.femaleIndirect), backgroundColor: C.gold }
-        ], 'Indirect Jobs');
+        ],
+        indirectSorted.length > 5
+      );
 
       const totalJobs = DATA.map(d => ({...d, total: d.directJobs+d.indirectJobs}))
         .filter(d=>d.total>0).sort((a,b)=>b.total-a.total).slice(0,15);
-      makeHorizontalBarChart('chartJobsPerBiz',
+      makeHBar('chartJobsPerBiz',
         totalJobs.map(d => d.name.length>20?d.name.slice(0,18)+'…':d.name),
-        totalJobs.map(d=>d.total), C.gold, 'Jobs');
-    }
+        totalJobs.map(d=>d.total), C.gold, false);
 
-    function renderSectors(DATA) {
+      // SECTORS
       const sec = aggregateCounts(DATA, 'sector');
-      makeDonutChart('chartSectorDonut', sec.labels, sec.values);
-      
-      const secSliced = sec.labels.slice(0, 15).map((l, i) => ({label: l, value: sec.values[i]}));
-      makeHorizontalBarChart('chartSectorBar', 
-        secSliced.map(d => d.label), 
-        secSliced.map(d => d.value), 
-        C.navy, 'Sector');
-      
-      const dist = aggregateCounts(DATA, 'district');
-      makeBarChart('chartDistrict', dist.labels, dist.values, C.gold, 'District');
-    }
+      makeDonut('chartSectorDonut', sec.labels, sec.values);
 
-    function renderFinance(DATA) {
-      const access = { 'Yes':0, 'No':0 };
-      DATA.forEach(d => { d.financeAccess ? access['Yes']++ : access['No']++; });
-      const accessLabels = Object.keys(access);
-      const accessValues = Object.values(access);
-      makeDonutChart('chartFinanceAccess', accessLabels, accessValues);
+      const secTop = sec.labels.slice(0, 15);
+      const secValTop = sec.values.slice(0, 15);
+      makeHBar('chartSectorBar', secTop, secValTop, C.navy, false);
+
+      const dist = aggregateCounts(DATA, 'district');
+      if (dist.values.length > 5) makeHBar('chartDistrict', dist.labels, dist.values, C.gold, false);
+      else makeVBar('chartDistrict', dist.labels, dist.values, C.gold, false);
+
+      // FINANCE
+      const yesNo = { 'Yes':0, 'No':0 };
+      DATA.forEach(d => { d.financeAccess ? yesNo['Yes']++ : yesNo['No']++; });
+      makeDonut('chartFinanceAccess', Object.keys(yesNo), Object.values(yesNo));
 
       const types = {};
       DATA.filter(d=>d.financeType).forEach(d => { types[d.financeType] = (types[d.financeType]||0)+1; });
-      const typesSorted = sortDesc(Object.keys(types), Object.values(types));
-      makeBarChart('chartFinanceTypes', typesSorted.labels, typesSorted.values, C.navy, 'Finance Types');
+      const ts = sortDesc(Object.keys(types), Object.values(types));
+      if (ts.values.length > 5) makeHBar('chartFinanceTypes', ts.labels, ts.values, C.navy, false);
+      else makeVBar('chartFinanceTypes', ts.labels, ts.values, C.navy, false);
 
-      const inc = { 'Yes':0, 'No':0 };
-      DATA.forEach(d => { d.revenueIncrease ? inc['Yes']++ : inc['No']++; });
-      const incLabels = Object.keys(inc);
-      const incValues = Object.values(inc);
-      makeDonutChart('chartRevenueIncrease', incLabels, incValues);
-    }
+      const inc2 = { 'Yes':0, 'No':0 };
+      DATA.forEach(d => { d.revenueIncrease ? inc2['Yes']++ : inc2['No']++; });
+      makeDonut('chartRevenueIncrease', Object.keys(inc2), Object.values(inc2));
 
-    function renderIntegrity(DATA) {
+      // INTEGRITY
       const conf = aggregateCounts(DATA, 'confidence');
-      makeBarChart('chartConfidence', conf.labels, conf.values, C.navy, 'Confidence');
-      
+      if (conf.values.length > 5) makeHBar('chartConfidence', conf.labels, conf.values, C.navy, false);
+      else makeVBar('chartConfidence', conf.labels, conf.values, C.navy, false);
+
       const rec = aggregateCounts(DATA, 'records');
-      makeBarChart('chartRecords', rec.labels, rec.values, C.gold, 'Records');
-      
+      if (rec.values.length > 5) makeHBar('chartRecords', rec.labels, rec.values, C.gold, false);
+      else makeVBar('chartRecords', rec.labels, rec.values, C.gold, false);
+
       const con = aggregateCounts(DATA, 'consistency');
-      makeBarChart('chartConsistency', con.labels, con.values, C.navy, 'Consistency');
-      
+      if (con.values.length > 5) makeHBar('chartConsistency', con.labels, con.values, C.navy, false);
+      else makeVBar('chartConsistency', con.labels, con.values, C.navy, false);
+
       const trans = aggregateCounts(DATA, 'transparency');
-      makeBarChart('chartTransparency', trans.labels, trans.values, C.gold, 'Transparency');
+      if (trans.values.length > 5) makeHBar('chartTransparency', trans.labels, trans.values, C.gold, false);
+      else makeVBar('chartTransparency', trans.labels, trans.values, C.gold, false);
     }
 
-    const sectionRenderers = {
-      overview: renderOverview, 
-      revenue: renderRevenue, 
-      jobs: renderJobs,
-      sectors: renderSectors, 
-      finance: renderFinance, 
-      integrity: renderIntegrity
-    };
-    
-    let DATA_CACHE = null;
-
+    // ── TAB SWITCHING - NO DESTROYING ──
     function switchSection(name) {
-      // Show/hide sections
       $$('.dash-section').forEach(s => s.classList.remove('active'));
       const el = $(`#section-${name}`);
       if (el) el.classList.add('active');
-      
-      // Update nav buttons
+
       $$('.nav-btn').forEach(b => {
-        const isActive = b.dataset.section === name;
-        b.classList.toggle('active', isActive);
+        b.classList.toggle('active', b.dataset.section === name);
       });
-      
-      // Always render when switching (data is cached, charts are recreated)
-      if (DATA_CACHE && sectionRenderers[name]) {
-        // Use requestAnimationFrame to ensure DOM is ready
-        requestAnimationFrame(() => {
-          sectionRenderers[name](DATA_CACHE);
-        });
-      }
-      
-      // Close mobile drawer
+
       $('#mobileDrawer').classList.remove('open');
       $('#drawerOverlay').classList.remove('open');
     }
@@ -1157,31 +915,29 @@
       const hamburger = $('#hamburger');
       const drawer = $('#mobileDrawer');
       const overlay = $('#drawerOverlay');
-      
+
       hamburger.addEventListener('click', (e) => {
         e.stopPropagation();
         drawer.classList.toggle('open');
         overlay.classList.toggle('open');
       });
-      
+
       overlay.addEventListener('click', () => {
         drawer.classList.remove('open');
         overlay.classList.remove('open');
       });
-      
+
       drawer.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          switchSection(btn.dataset.section);
-        });
+        btn.addEventListener('click', () => switchSection(btn.dataset.section));
       });
-      
+
       document.addEventListener('click', (e) => {
         if (!drawer.contains(e.target) && !hamburger.contains(e.target)) {
           drawer.classList.remove('open');
           overlay.classList.remove('open');
         }
       });
-      
+
       window.addEventListener('resize', () => {
         if (window.innerWidth > 900) {
           drawer.classList.remove('open');
@@ -1193,20 +949,19 @@
     async function boot() {
       const loader = $('#appLoader');
       const errorEl = $('#loaderError');
-      
+
       try {
-        DATA_CACHE = await loadCSV();
-        if (!DATA_CACHE.length) throw new Error('No valid rows found in data.csv');
-        
-        renderKPIs(DATA_CACHE);
+        const DATA = await loadCSV();
+        if (!DATA.length) throw new Error('No valid rows found');
+
+        renderAllCharts(DATA);
         initMobileNav();
-        switchSection('overview');
-        
+
         loader.classList.add('hidden');
         setTimeout(() => loader.remove(), 500);
       } catch (err) {
         console.error(err);
-        errorEl.textContent = '⚠ ' + err.message + '. Make sure data.csv is in the same folder and served over HTTP(S).';
+        errorEl.textContent = '⚠ ' + err.message;
       }
     }
 
@@ -1214,7 +969,6 @@
       $$('.header-nav .nav-btn').forEach(btn => {
         btn.addEventListener('click', () => switchSection(btn.dataset.section));
       });
-      
       boot();
     });
   })();
