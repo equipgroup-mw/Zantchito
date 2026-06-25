@@ -126,69 +126,69 @@
     }
     .nav-btn:hover { color: var(--cream); background: rgba(168,147,90,.15); }
     .nav-btn.active { color: var(--gold); background: rgba(168,147,90,.2); font-weight: 600; }
-    
+
     .hamburger {
-      display: none; 
-      flex-direction: column; 
+      display: none;
+      flex-direction: column;
       gap: 5px;
-      background: none; 
-      border: none; 
-      cursor: pointer; 
+      background: none;
+      border: none;
+      cursor: pointer;
       padding: 8px;
       z-index: 101;
       position: relative;
       margin-left: auto;
     }
     .hamburger span {
-      display: block; 
-      width: 22px; 
+      display: block;
+      width: 22px;
       height: 2px;
-      background: var(--cream); 
+      background: var(--cream);
       border-radius: 2px;
       transition: var(--transition);
     }
 
     .mobile-drawer {
-      position: fixed; 
-      top: var(--header-h); 
+      position: fixed;
+      top: var(--header-h);
       right: -280px;
-      width: 280px; 
+      width: 280px;
       height: calc(100vh - var(--header-h));
       height: calc(100dvh - var(--header-h));
-      background: var(--navy); 
+      background: var(--navy);
       z-index: 99;
-      display: flex; 
+      display: flex;
       flex-direction: column;
-      padding: 16px; 
+      padding: 16px;
       gap: 4px;
       transition: right var(--transition);
       box-shadow: -4px 0 20px rgba(0,0,0,.3);
       overflow-y: auto;
     }
     .mobile-drawer.open { right: 0; }
-    .mobile-drawer .nav-btn { 
-      text-align: left; 
-      font-size: .95rem; 
+    .mobile-drawer .nav-btn {
+      text-align: left;
+      font-size: .95rem;
       padding: 14px 16px;
       width: 100%;
       border-radius: 8px;
     }
     .drawer-overlay {
-      position: fixed; 
-      inset: 0; 
+      position: fixed;
+      inset: 0;
       top: var(--header-h);
-      background: rgba(0,0,0,.4); 
+      background: rgba(0,0,0,.4);
       z-index: 98;
-      opacity: 0; 
+      opacity: 0;
       pointer-events: none;
       transition: opacity var(--transition);
     }
     .drawer-overlay.open { opacity: 1; pointer-events: auto; }
 
-    .dashboard-main { 
-      max-width: 1440px; 
-      margin: 0 auto; 
-      padding: 24px; 
+    .dashboard-main {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 24px;
       width: 100%;
       overflow-x: hidden;
     }
@@ -196,13 +196,13 @@
     .kpi-strip {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
-      gap: 16px; 
+      gap: 16px;
       margin-bottom: 28px;
     }
     .kpi-card {
       background: var(--white);
       border-radius: var(--radius);
-      padding: 20px 16px; 
+      padding: 20px 16px;
       text-align: center;
       box-shadow: var(--shadow-sm);
       border-top: 3px solid var(--gold);
@@ -210,19 +210,19 @@
     }
     .kpi-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
     .kpi-label {
-      display: block; 
+      display: block;
       font-size: .72rem;
-      text-transform: uppercase; 
+      text-transform: uppercase;
       letter-spacing: .06em;
-      color: var(--text-muted); 
-      margin-bottom: 6px; 
+      color: var(--text-muted);
+      margin-bottom: 6px;
       font-weight: 600;
     }
     .kpi-value {
-      display: block; 
-      font-size: 1.8rem; 
+      display: block;
+      font-size: 1.8rem;
       font-weight: 800;
-      color: var(--navy); 
+      color: var(--navy);
       line-height: 1.1;
     }
 
@@ -236,24 +236,24 @@
     .chart-card {
       background: var(--white);
       border-radius: var(--radius);
-      padding: 24px; 
+      padding: 24px;
       box-shadow: var(--shadow-sm);
       transition: var(--transition);
     }
     .chart-card:hover { box-shadow: var(--shadow-md); }
     .chart-card h2 {
-      font-size: .92rem; 
-      font-weight: 700; 
+      font-size: .92rem;
+      font-weight: 700;
       color: var(--navy);
-      margin-bottom: 16px; 
+      margin-bottom: 16px;
       padding-bottom: 10px;
       border-bottom: 2px solid var(--cream);
     }
     .chart-card h2 small {
-      display: block; 
-      font-size: .72rem; 
+      display: block;
+      font-size: .72rem;
       font-weight: 400;
-      color: var(--text-muted); 
+      color: var(--text-muted);
       margin-top: 2px;
     }
     .chart-wrap { position: relative; width: 100%; height: 320px; }
@@ -261,11 +261,11 @@
     .chart-wrap-wide { height: 400px; }
 
     .app-footer {
-      text-align: center; 
+      text-align: center;
       padding: 24px;
-      color: var(--text-muted); 
+      color: var(--text-muted);
       font-size: .75rem;
-      border-top: 1px solid var(--gray-light); 
+      border-top: 1px solid var(--gray-light);
       margin-top: 20px;
     }
 
@@ -483,9 +483,14 @@
                 '#7c6934','#1e5245','#b89d5e','#2e4a3e','#9c8650']
     };
 
-    // CRITICAL: Disable Chart.js animations to prevent shared-animator crashes when tabs switch
+    // Disable all Chart.js animation/transition machinery.
+    // This removes the shared rAF animator's color/element tweening
+    // entirely, which is what produced the "this._fn is not a function"
+    // crash when a hovered/transitioning chart was hidden.
     Chart.defaults.animation = false;
     Chart.defaults.transitions.active.animation.duration = 0;
+    Chart.defaults.hover.mode = null;
+    Chart.defaults.events = []; // no hover/click event wiring at all -> nothing to animate, nothing to tick
 
     Chart.defaults.font.family = "'Libre Franklin', 'Segoe UI', system-ui, sans-serif";
     Chart.defaults.color = C.axisColor;
@@ -493,6 +498,7 @@
     Chart.defaults.plugins.legend.labels.usePointStyle = true;
     Chart.defaults.plugins.legend.labels.padding = 16;
     Chart.defaults.plugins.legend.labels.font = { family: "'Libre Franklin', sans-serif" };
+    Chart.defaults.plugins.tooltip.enabled = false; // tooltip requires hover events; disabling avoids reintroducing animator activity
     Chart.defaults.plugins.tooltip.backgroundColor = C.navy;
     Chart.defaults.plugins.tooltip.titleColor = C.cream;
     Chart.defaults.plugins.tooltip.bodyColor = C.gray;
@@ -630,12 +636,22 @@
       return rows.map(r => parseRow(r, headers, colMap)).filter(d => d.id);
     }
 
-    // Chart instance registry for resize calls
+    // Registry of live Chart.js instances, keyed by canvas id.
+    // Only ever contains charts belonging to the currently-active tab.
     const charts = {};
+
+    function destroyChart(canvasId) {
+      const existing = charts[canvasId];
+      if (existing) {
+        try { existing.destroy(); } catch (e) { /* already gone, ignore */ }
+        delete charts[canvasId];
+      }
+    }
 
     function makeHBar(canvasId, labels, values, color, isMWK) {
       const ctx = document.getElementById(canvasId);
       if (!ctx || !labels.length) return;
+      destroyChart(canvasId);
       charts[canvasId] = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -655,15 +671,15 @@
           scales: {
             x: {
               grid: { color: 'rgba(0,0,0,.05)' },
-              ticks: { 
-                color: C.axisColor, 
+              ticks: {
+                color: C.axisColor,
                 callback: v => isMWK ? fmtMWK(v) : fmt(v),
                 font: { size: 11, weight: '500' }
               }
             },
             y: {
               grid: { display: false },
-              ticks: { 
+              ticks: {
                 color: C.axisColor,
                 font: { size: 11, weight: '500' },
                 maxRotation: 0
@@ -677,6 +693,7 @@
     function makeVBar(canvasId, labels, values, color, isMWK) {
       const ctx = document.getElementById(canvasId);
       if (!ctx || !labels.length) return;
+      destroyChart(canvasId);
       charts[canvasId] = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -695,16 +712,16 @@
           scales: {
             x: {
               grid: { display: false },
-              ticks: { 
-                color: C.axisColor, 
+              ticks: {
+                color: C.axisColor,
                 maxRotation: 0,
                 font: { size: 11, weight: '500' }
               }
             },
             y: {
               grid: { color: 'rgba(0,0,0,.05)' },
-              ticks: { 
-                color: C.axisColor, 
+              ticks: {
+                color: C.axisColor,
                 callback: v => isMWK ? fmtMWK(v) : fmt(v),
                 font: { size: 11, weight: '500' }
               }
@@ -717,6 +734,7 @@
     function makeDonut(canvasId, labels, values) {
       const ctx = document.getElementById(canvasId);
       if (!ctx || !labels.length) return;
+      destroyChart(canvasId);
       const colors = values.length === 2 ? [C.navy, C.gold] : labels.map((_,i) => C.palette[i % C.palette.length]);
       const total = values.reduce((a,b) => a+b, 0);
       charts[canvasId] = new Chart(ctx, {
@@ -727,8 +745,7 @@
             data: values,
             backgroundColor: colors,
             borderWidth: 2,
-            borderColor: C.white,
-            hoverOffset: 8
+            borderColor: C.white
           }]
         },
         options: {
@@ -751,15 +768,6 @@
                   }));
                 }
               }
-            },
-            tooltip: {
-              callbacks: {
-                label: ctx => {
-                  const value = ctx.raw;
-                  const percentage = ((value / total) * 100).toFixed(1);
-                  return `${ctx.label}: ${value} (${percentage}%)`;
-                }
-              }
             }
           }
         }
@@ -769,15 +777,16 @@
     function makeGrouped(canvasId, labels, datasets, isHorizontal) {
       const ctx = document.getElementById(canvasId);
       if (!ctx || !labels.length) return;
+      destroyChart(canvasId);
       charts[canvasId] = new Chart(ctx, {
         type: 'bar',
-        data: { 
-          labels, 
+        data: {
+          labels,
           datasets: datasets.map(ds => ({
-            ...ds, 
+            ...ds,
             borderRadius: 6,
             borderSkipped: false
-          })) 
+          }))
         },
         options: {
           indexAxis: isHorizontal ? 'y' : 'x',
@@ -786,29 +795,24 @@
           plugins: {
             legend: {
               position: 'top',
-              labels: { 
-                font: { family: "'Libre Franklin', sans-serif" }, 
-                color: C.axisColor 
-              }
-            },
-            tooltip: {
-              callbacks: {
-                label: ctx => `${ctx.dataset.label}: ${ctx.raw}`
+              labels: {
+                font: { family: "'Libre Franklin', sans-serif" },
+                color: C.axisColor
               }
             }
           },
           scales: {
             x: {
               grid: { display: false },
-              ticks: { 
-                color: C.axisColor, 
-                maxRotation: isHorizontal ? 0 : 0,
+              ticks: {
+                color: C.axisColor,
+                maxRotation: 0,
                 font: { size: 11, weight: '500' }
               }
             },
             y: {
               grid: { color: 'rgba(0,0,0,.05)' },
-              ticks: { 
+              ticks: {
                 color: C.axisColor,
                 font: { size: 11, weight: '500' }
               }
@@ -970,7 +974,29 @@
       integrity: renderIntegrity
     };
 
+    // Destroy every chart belonging to a given section name.
+    function destroySectionCharts(name) {
+      const section = $(`#section-${name}`);
+      if (!section) return;
+      section.querySelectorAll('canvas').forEach(canvas => destroyChart(canvas.id));
+      rendered[name] = false;
+    }
+
     function switchSection(name) {
+      const prevSection = $('.dash-section.active');
+      const prevName = prevSection ? prevSection.id.replace('section-', '') : null;
+
+      if (prevName === name) {
+        // Already on this tab, nothing to do.
+        $('#mobileDrawer').classList.remove('open');
+        $('#drawerOverlay').classList.remove('open');
+        return;
+      }
+
+      // Destroy charts in the tab we're leaving BEFORE hiding it,
+      // so no chart instance ever exists while its canvas is display:none.
+      if (prevName) destroySectionCharts(prevName);
+
       $$('.dash-section').forEach(s => s.classList.remove('active'));
       const el = $(`#section-${name}`);
       if (el) el.classList.add('active');
@@ -982,19 +1008,12 @@
       $('#mobileDrawer').classList.remove('open');
       $('#drawerOverlay').classList.remove('open');
 
-      // Lazy-render if first visit to this tab
-      if (!rendered[name] && DATA && renderers[name]) {
+      // Build charts for the tab we're entering, now that it is visible
+      // and has real layout dimensions.
+      if (DATA && renderers[name]) {
         renderers[name](DATA);
         rendered[name] = true;
       }
-
-      // Safety: resize all charts in this tab after it becomes visible
-      // Prevents squashed render from ResizeObserver firing 0x0 during display:none
-      requestAnimationFrame(() => {
-        Object.values(charts).forEach(chart => {
-          if (chart && chart.resize) chart.resize();
-        });
-      });
     }
 
     function initMobileNav() {
