@@ -496,7 +496,6 @@
     Chart.defaults.plugins.tooltip.padding = 12;
     Chart.defaults.plugins.tooltip.titleFont = { family: "'Libre Franklin', sans-serif", weight: '600' };
     Chart.defaults.plugins.tooltip.bodyFont = { family: "'Libre Franklin', sans-serif" };
-    Chart.defaults.animation = false;
 
     const $ = s => document.querySelector(s);
     const $$ = s => document.querySelectorAll(s);
@@ -627,7 +626,6 @@
       return rows.map(r => parseRow(r, headers, colMap)).filter(d => d.id);
     }
 
-    // Simple horizontal bar chart
     function makeHBar(canvasId, labels, values, color, isMWK) {
       const ctx = document.getElementById(canvasId);
       if (!ctx || !labels.length) return;
@@ -638,7 +636,8 @@
           datasets: [{
             data: values,
             backgroundColor: color,
-            borderRadius: 6
+            borderRadius: 6,
+            borderSkipped: false
           }]
         },
         options: {
@@ -648,17 +647,26 @@
           plugins: { legend: { display: false } },
           scales: {
             x: {
-              ticks: { color: C.axisColor, callback: v => isMWK ? fmtMWK(v) : v }
+              grid: { color: 'rgba(0,0,0,.05)' },
+              ticks: { 
+                color: C.axisColor, 
+                callback: v => isMWK ? fmtMWK(v) : fmt(v),
+                font: { size: 11, weight: '500' }
+              }
             },
             y: {
-              ticks: { color: C.axisColor }
+              grid: { display: false },
+              ticks: { 
+                color: C.axisColor,
+                font: { size: 11, weight: '500' },
+                maxRotation: 0
+              }
             }
           }
         }
       });
     }
 
-    // Simple vertical bar chart
     function makeVBar(canvasId, labels, values, color, isMWK) {
       const ctx = document.getElementById(canvasId);
       if (!ctx || !labels.length) return;
@@ -669,7 +677,8 @@
           datasets: [{
             data: values,
             backgroundColor: color,
-            borderRadius: 6
+            borderRadius: 6,
+            borderSkipped: false
           }]
         },
         options: {
@@ -678,17 +687,26 @@
           plugins: { legend: { display: false } },
           scales: {
             x: {
-              ticks: { color: C.axisColor, maxRotation: 0 }
+              grid: { display: false },
+              ticks: { 
+                color: C.axisColor, 
+                maxRotation: 0,
+                font: { size: 11, weight: '500' }
+              }
             },
             y: {
-              ticks: { color: C.axisColor, callback: v => isMWK ? fmtMWK(v) : v }
+              grid: { color: 'rgba(0,0,0,.05)' },
+              ticks: { 
+                color: C.axisColor, 
+                callback: v => isMWK ? fmtMWK(v) : fmt(v),
+                font: { size: 11, weight: '500' }
+              }
             }
           }
         }
       });
     }
 
-    // Simple doughnut chart
     function makeDonut(canvasId, labels, values) {
       const ctx = document.getElementById(canvasId);
       if (!ctx || !labels.length) return;
@@ -702,7 +720,8 @@
             data: values,
             backgroundColor: colors,
             borderWidth: 2,
-            borderColor: C.white
+            borderColor: C.white,
+            hoverOffset: 8
           }]
         },
         options: {
@@ -715,6 +734,7 @@
               labels: {
                 font: { size: 12, family: "'Libre Franklin', sans-serif" },
                 color: C.axisColor,
+                padding: 12,
                 generateLabels: function(chart) {
                   return chart.data.labels.map((label, i) => ({
                     text: `${label}: ${chart.data.datasets[0].data[i]} (${((chart.data.datasets[0].data[i]/total)*100).toFixed(1)}%)`,
@@ -724,19 +744,34 @@
                   }));
                 }
               }
+            },
+            tooltip: {
+              callbacks: {
+                label: ctx => {
+                  const value = ctx.raw;
+                  const percentage = ((value / total) * 100).toFixed(1);
+                  return `${ctx.label}: ${value} (${percentage}%)`;
+                }
+              }
             }
           }
         }
       });
     }
 
-    // Simple grouped bar
     function makeGrouped(canvasId, labels, datasets, isHorizontal) {
       const ctx = document.getElementById(canvasId);
       if (!ctx || !labels.length) return;
       new Chart(ctx, {
         type: 'bar',
-        data: { labels, datasets: datasets.map(ds => ({ ...ds, borderRadius: 6 })) },
+        data: { 
+          labels, 
+          datasets: datasets.map(ds => ({
+            ...ds, 
+            borderRadius: 6,
+            borderSkipped: false
+          })) 
+        },
         options: {
           indexAxis: isHorizontal ? 'y' : 'x',
           responsive: true,
@@ -744,30 +779,50 @@
           plugins: {
             legend: {
               position: 'top',
-              labels: { font: { family: "'Libre Franklin', sans-serif" }, color: C.axisColor }
+              labels: { 
+                font: { family: "'Libre Franklin', sans-serif" }, 
+                color: C.axisColor 
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: ctx => `${ctx.dataset.label}: ${ctx.raw}`
+              }
             }
           },
           scales: {
             x: {
-              ticks: { color: C.axisColor, maxRotation: isHorizontal ? 0 : 0 }
+              grid: { display: false },
+              ticks: { 
+                color: C.axisColor, 
+                maxRotation: isHorizontal ? 0 : 0,
+                font: { size: 11, weight: '500' }
+              }
             },
             y: {
-              ticks: { color: C.axisColor }
+              grid: { color: 'rgba(0,0,0,.05)' },
+              ticks: { 
+                color: C.axisColor,
+                font: { size: 11, weight: '500' }
+              }
             }
           }
         }
       });
     }
 
-    // ── RENDER EVERYTHING ONCE ──
-    function renderAllCharts(DATA) {
-      // KPIs
-      const total = DATA.length;
-      const operational = DATA.filter(d => d.operational).length;
-      const directJobs = DATA.reduce((s,d) => s + d.directJobs, 0);
-      const females = DATA.filter(d => d.gender === 'Female').length;
-      const finance = DATA.filter(d => d.financeAccess).length;
-      const registered = DATA.filter(d => d.registered).length;
+    // ── DATA ──
+    let DATA = null;
+    const rendered = {};
+
+    // ── RENDER FUNCTIONS ──
+    function renderOverview(D) {
+      const total = D.length;
+      const operational = D.filter(d => d.operational).length;
+      const directJobs = D.reduce((s,d) => s + d.directJobs, 0);
+      const females = D.filter(d => d.gender === 'Female').length;
+      const finance = D.filter(d => d.financeAccess).length;
+      const registered = D.filter(d => d.registered).length;
       const registeredPct = Math.round(registered / total * 100);
 
       $('#kpiTotal').textContent = total;
@@ -777,8 +832,7 @@
       $('#kpiFinance').textContent = finance;
       $('#kpiRegistered').textContent = registeredPct + '%';
 
-      // OVERVIEW
-      const revSorted = [...DATA].sort((a,b) => b.reportedRev - a.reportedRev).slice(0,15);
+      const revSorted = [...D].sort((a,b) => b.reportedRev - a.reportedRev).slice(0,15);
       makeGrouped('chartRevenueCompare',
         revSorted.map(d => d.name.length > 20 ? d.name.slice(0,18)+'…' : d.name),
         [
@@ -788,33 +842,34 @@
         revSorted.length > 5
       );
 
-      const g = aggregateCounts(DATA, 'gender');
+      const g = aggregateCounts(D, 'gender');
       makeDonut('chartGender', g.labels, g.values);
 
-      const loc = aggregateCounts(DATA, 'location');
+      const loc = aggregateCounts(D, 'location');
       if (loc.values.length > 5) makeHBar('chartLocation', loc.labels, loc.values, C.navy, false);
       else makeVBar('chartLocation', loc.labels, loc.values, C.navy, false);
 
-      const stg = aggregateCounts(DATA, 'stage');
+      const stg = aggregateCounts(D, 'stage');
       if (stg.values.length > 5) makeHBar('chartIncubation', stg.labels, stg.values, C.gold, false);
       else makeVBar('chartIncubation', stg.labels, stg.values, C.gold, false);
 
-      const inc = aggregateCounts(DATA, 'incubator');
+      const inc = aggregateCounts(D, 'incubator');
       makeHBar('chartIncubatorDist', inc.labels, inc.values, C.navy, false);
+    }
 
-      // REVENUE
-      const active = DATA.filter(d => d.reportedRev > 0).sort((a,b) => b.reportedRev - a.reportedRev).slice(0,15);
+    function renderRevenue(D) {
+      const active = D.filter(d => d.reportedRev > 0).sort((a,b) => b.reportedRev - a.reportedRev).slice(0,15);
       makeHBar('chartRevenueBar',
         active.map(d => d.name.length > 20 ? d.name.slice(0,18)+'…' : d.name),
         active.map(d=>d.reportedRev), C.navy, true);
 
-      const withVar = DATA.filter(d => d.variance !== 0).sort((a,b) => Math.abs(b.variance) - Math.abs(a.variance)).slice(0,15);
+      const withVar = D.filter(d => d.variance !== 0).sort((a,b) => Math.abs(b.variance) - Math.abs(a.variance)).slice(0,15);
       makeHBar('chartVariance',
         withVar.map(d => d.name.length > 18 ? d.name.slice(0,16)+'…' : d.name),
         withVar.map(d => Math.abs(d.variance)), C.gold, true);
 
       const incGroups = {};
-      DATA.forEach(d => {
+      D.forEach(d => {
         if (!incGroups[d.incubator]) incGroups[d.incubator] = [];
         incGroups[d.incubator].push(d.reportedRev);
       });
@@ -824,9 +879,10 @@
       makeHBar('chartIncubatorRevenue',
         incAvg.map(d => d.label.length > 22 ? d.label.slice(0,20)+'…' : d.label),
         incAvg.map(d => d.value), C.navy, true);
+    }
 
-      // JOBS
-      const directSorted = [...DATA].filter(d=>d.directJobs>0).sort((a,b)=>b.directJobs-a.directJobs).slice(0,15);
+    function renderJobs(D) {
+      const directSorted = [...D].filter(d=>d.directJobs>0).sort((a,b)=>b.directJobs-a.directJobs).slice(0,15);
       makeGrouped('chartDirectJobs',
         directSorted.map(d => d.name.length>18?d.name.slice(0,16)+'…':d.name),
         [
@@ -836,7 +892,7 @@
         directSorted.length > 5
       );
 
-      const indirectSorted = [...DATA].filter(d=>d.indirectJobs>0).sort((a,b)=>b.indirectJobs-a.indirectJobs).slice(0,15);
+      const indirectSorted = [...D].filter(d=>d.indirectJobs>0).sort((a,b)=>b.indirectJobs-a.indirectJobs).slice(0,15);
       makeGrouped('chartIndirectJobs',
         indirectSorted.map(d => d.name.length>18?d.name.slice(0,16)+'…':d.name),
         [
@@ -846,58 +902,70 @@
         indirectSorted.length > 5
       );
 
-      const totalJobs = DATA.map(d => ({...d, total: d.directJobs+d.indirectJobs}))
+      const totalJobs = D.map(d => ({...d, total: d.directJobs+d.indirectJobs}))
         .filter(d=>d.total>0).sort((a,b)=>b.total-a.total).slice(0,15);
       makeHBar('chartJobsPerBiz',
         totalJobs.map(d => d.name.length>20?d.name.slice(0,18)+'…':d.name),
         totalJobs.map(d=>d.total), C.gold, false);
+    }
 
-      // SECTORS
-      const sec = aggregateCounts(DATA, 'sector');
+    function renderSectors(D) {
+      const sec = aggregateCounts(D, 'sector');
       makeDonut('chartSectorDonut', sec.labels, sec.values);
 
       const secTop = sec.labels.slice(0, 15);
       const secValTop = sec.values.slice(0, 15);
       makeHBar('chartSectorBar', secTop, secValTop, C.navy, false);
 
-      const dist = aggregateCounts(DATA, 'district');
+      const dist = aggregateCounts(D, 'district');
       if (dist.values.length > 5) makeHBar('chartDistrict', dist.labels, dist.values, C.gold, false);
       else makeVBar('chartDistrict', dist.labels, dist.values, C.gold, false);
+    }
 
-      // FINANCE
+    function renderFinance(D) {
       const yesNo = { 'Yes':0, 'No':0 };
-      DATA.forEach(d => { d.financeAccess ? yesNo['Yes']++ : yesNo['No']++; });
+      D.forEach(d => { d.financeAccess ? yesNo['Yes']++ : yesNo['No']++; });
       makeDonut('chartFinanceAccess', Object.keys(yesNo), Object.values(yesNo));
 
       const types = {};
-      DATA.filter(d=>d.financeType).forEach(d => { types[d.financeType] = (types[d.financeType]||0)+1; });
+      D.filter(d=>d.financeType).forEach(d => { types[d.financeType] = (types[d.financeType]||0)+1; });
       const ts = sortDesc(Object.keys(types), Object.values(types));
       if (ts.values.length > 5) makeHBar('chartFinanceTypes', ts.labels, ts.values, C.navy, false);
       else makeVBar('chartFinanceTypes', ts.labels, ts.values, C.navy, false);
 
       const inc2 = { 'Yes':0, 'No':0 };
-      DATA.forEach(d => { d.revenueIncrease ? inc2['Yes']++ : inc2['No']++; });
+      D.forEach(d => { d.revenueIncrease ? inc2['Yes']++ : inc2['No']++; });
       makeDonut('chartRevenueIncrease', Object.keys(inc2), Object.values(inc2));
+    }
 
-      // INTEGRITY
-      const conf = aggregateCounts(DATA, 'confidence');
+    function renderIntegrity(D) {
+      const conf = aggregateCounts(D, 'confidence');
       if (conf.values.length > 5) makeHBar('chartConfidence', conf.labels, conf.values, C.navy, false);
       else makeVBar('chartConfidence', conf.labels, conf.values, C.navy, false);
 
-      const rec = aggregateCounts(DATA, 'records');
+      const rec = aggregateCounts(D, 'records');
       if (rec.values.length > 5) makeHBar('chartRecords', rec.labels, rec.values, C.gold, false);
       else makeVBar('chartRecords', rec.labels, rec.values, C.gold, false);
 
-      const con = aggregateCounts(DATA, 'consistency');
+      const con = aggregateCounts(D, 'consistency');
       if (con.values.length > 5) makeHBar('chartConsistency', con.labels, con.values, C.navy, false);
       else makeVBar('chartConsistency', con.labels, con.values, C.navy, false);
 
-      const trans = aggregateCounts(DATA, 'transparency');
+      const trans = aggregateCounts(D, 'transparency');
       if (trans.values.length > 5) makeHBar('chartTransparency', trans.labels, trans.values, C.gold, false);
       else makeVBar('chartTransparency', trans.labels, trans.values, C.gold, false);
     }
 
-    // ── TAB SWITCHING - NO DESTROYING ──
+    const renderers = {
+      overview: renderOverview,
+      revenue: renderRevenue,
+      jobs: renderJobs,
+      sectors: renderSectors,
+      finance: renderFinance,
+      integrity: renderIntegrity
+    };
+
+    // ── TAB SWITCHING ──
     function switchSection(name) {
       $$('.dash-section').forEach(s => s.classList.remove('active'));
       const el = $(`#section-${name}`);
@@ -909,6 +977,12 @@
 
       $('#mobileDrawer').classList.remove('open');
       $('#drawerOverlay').classList.remove('open');
+
+      // Lazy-render: only create charts when tab becomes visible
+      if (!rendered[name] && DATA && renderers[name]) {
+        renderers[name](DATA);
+        rendered[name] = true;
+      }
     }
 
     function initMobileNav() {
@@ -951,10 +1025,12 @@
       const errorEl = $('#loaderError');
 
       try {
-        const DATA = await loadCSV();
+        DATA = await loadCSV();
         if (!DATA.length) throw new Error('No valid rows found');
 
-        renderAllCharts(DATA);
+        // Only render Overview on boot (it's the visible tab)
+        renderOverview(DATA);
+        rendered.overview = true;
         initMobileNav();
 
         loader.classList.add('hidden');
