@@ -1,9 +1,10 @@
-const CACHE_NAME = 'zantchito-dash-v2';
+const CACHE_NAME = 'zantchito-dash-v4';
+const CSV_VERSION = '20260625'; // ← bump this when you update data.csv
+
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './data.csv',
   './Z.png',
   './E.png',
   './browser.png',
@@ -27,19 +28,33 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Network-first for CSV so updates show immediately
-  if (e.request.url.endsWith('data.csv')) {
+  const url = e.request.url;
+
+  // CSV: network-first + cache with version key
+  if (url.includes('data.csv')) {
     e.respondWith(
       fetch(e.request)
         .then(res => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then(c => c.put(e.request, copy));
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE_NAME).then(c => c.put(e.request, copy));
+          }
           return res;
         })
         .catch(() => caches.match(e.request))
     );
     return;
   }
+
+  // Fonts: cache-first
+  if (url.includes('fonts.gstatic.com') || url.includes('fonts.googleapis.com')) {
+    e.respondWith(
+      caches.match(e.request).then(cached => cached || fetch(e.request))
+    );
+    return;
+  }
+
+  // Everything else: cache-first
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request).catch(() =>
       new Response('Offline', { status: 503 })
