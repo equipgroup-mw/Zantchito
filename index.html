@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#0d2136" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Zantchito Impact" />
@@ -671,11 +672,6 @@
       }
     }
 
-    function destroyAllCharts() {
-      chartInstances.forEach(chart => chart.destroy());
-      chartInstances.clear();
-    }
-
     // ── Data label plugin ──
     const dataLabelPlugin = {
       id: 'dataLabels',
@@ -688,24 +684,29 @@
               const value = dataset.data[index];
               if (value === 0 || value === null || value === undefined) return;
               
+              // Get formatter from dataset options or use default
+              const formatter = dataset.datalabels?.formatter || (v => v);
+              const fontSettings = {
+                size: dataset.datalabels?.font?.size || 10,
+                weight: dataset.datalabels?.font?.weight || '600',
+                family: dataset.datalabels?.font?.family || "'Libre Franklin', sans-serif"
+              };
+              
               ctx.fillStyle = C.axisColor;
-              ctx.font = Chart.helpers.fontString(
-                chart.options.plugins?.datalabels?.font?.size || 10,
-                chart.options.plugins?.datalabels?.font?.weight || '600',
-                chart.options.plugins?.datalabels?.font?.family || "'Libre Franklin', sans-serif"
-              );
+              ctx.font = Chart.helpers.fontString(fontSettings.size, fontSettings.weight, fontSettings.family);
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
               
-              const formattedValue = chart.options.plugins?.datalabels?.formatter 
-                ? chart.options.plugins.datalabels.formatter(value)
-                : value;
+              const formattedValue = formatter(value);
               
               if (chart.isHorizontal) {
                 const x = element.x + (value >= 0 ? 12 : -12);
                 const y = element.y;
                 ctx.textAlign = value >= 0 ? 'left' : 'right';
                 ctx.fillText(formattedValue, x, y);
+              } else if (chart.config.type === 'doughnut') {
+                // For doughnut charts, don't add data labels on the chart itself
+                // They're shown in tooltips and legend
               } else {
                 const x = element.x;
                 const y = element.y - 10;
@@ -737,7 +738,11 @@
             borderRadius: 6,
             borderSkipped: false,
             barPercentage: 0.7,
-            categoryPercentage: 0.8
+            categoryPercentage: 0.8,
+            datalabels: {
+              font: { size: 10, weight: '600', family: "'Libre Franklin', sans-serif" },
+              formatter: v => isMWK ? fmtMWK(v) : fmt(v)
+            }
           }]
         },
         options: {
@@ -750,10 +755,6 @@
               callbacks: { 
                 label: ctx => isMWK ? fmtMWK(ctx.raw) : String(ctx.raw) 
               } 
-            },
-            datalabels: {
-              font: { size: 10, weight: '600', family: "'Libre Franklin', sans-serif" },
-              formatter: v => isMWK ? fmtMWK(v) : fmt(v)
             }
           },
           scales: {
@@ -802,7 +803,11 @@
             borderRadius: 6,
             borderSkipped: false,
             barPercentage: 0.7,
-            categoryPercentage: 0.8
+            categoryPercentage: 0.8,
+            datalabels: {
+              font: { size: 10, weight: '600', family: "'Libre Franklin', sans-serif" },
+              formatter: v => isMWK ? fmtMWK(v) : fmt(v)
+            }
           }]
         },
         options: {
@@ -814,10 +819,6 @@
               callbacks: { 
                 label: ctx => isMWK ? fmtMWK(ctx.raw) : String(ctx.raw) 
               } 
-            },
-            datalabels: {
-              font: { size: 10, weight: '600', family: "'Libre Franklin', sans-serif" },
-              formatter: v => isMWK ? fmtMWK(v) : fmt(v)
             }
           },
           scales: {
@@ -892,13 +893,6 @@
                   return `${ctx.label}: ${value} (${percentage}%)`;
                 }
               }
-            },
-            datalabels: {
-              font: { size: 12, weight: '700', family: "'Libre Franklin', sans-serif" },
-              formatter: v => {
-                const pct = ((v / total) * 100).toFixed(1);
-                return `${v} (${pct}%)`;
-              }
             }
           }
         }
@@ -912,18 +906,25 @@
       const ctx = document.getElementById(canvasId);
       if (!ctx) return;
       
-      const maxValue = Math.max(...datasets.flatMap(ds => ds.data));
-      
       if (labels.length > 5) {
         const chart = new Chart(ctx, {
           type: 'bar',
-          data: { labels, datasets: datasets.map(ds => ({
-            ...ds,
-            borderRadius: 6,
-            barPercentage: 0.7,
-            categoryPercentage: 0.8,
-            borderSkipped: false
-          })) },
+          data: { 
+            labels, 
+            datasets: datasets.map(ds => ({
+              label: ds.label,
+              data: ds.data,
+              backgroundColor: ds.backgroundColor,
+              borderRadius: 6,
+              barPercentage: 0.7,
+              categoryPercentage: 0.8,
+              borderSkipped: false,
+              datalabels: {
+                font: { size: 10, weight: '600', family: "'Libre Franklin', sans-serif" },
+                formatter: v => v
+              }
+            }))
+          },
           options: {
             indexAxis: 'y',
             responsive: true,
@@ -940,10 +941,6 @@
                 callbacks: { 
                   label: ctx => `${ctx.dataset.label}: ${ctx.raw}` 
                 } 
-              },
-              datalabels: {
-                font: { size: 10, weight: '600', family: "'Libre Franklin', sans-serif" },
-                formatter: v => v
               }
             },
             scales: {
@@ -971,13 +968,22 @@
       } else {
         const chart = new Chart(ctx, {
           type: 'bar',
-          data: { labels, datasets: datasets.map(ds => ({
-            ...ds,
-            borderRadius: 6,
-            barPercentage: 0.7,
-            categoryPercentage: 0.8,
-            borderSkipped: false
-          })) },
+          data: { 
+            labels, 
+            datasets: datasets.map(ds => ({
+              label: ds.label,
+              data: ds.data,
+              backgroundColor: ds.backgroundColor,
+              borderRadius: 6,
+              barPercentage: 0.7,
+              categoryPercentage: 0.8,
+              borderSkipped: false,
+              datalabels: {
+                font: { size: 10, weight: '600', family: "'Libre Franklin', sans-serif" },
+                formatter: v => v
+              }
+            }))
+          },
           options: {
             responsive: true,
             maintainAspectRatio: false,
@@ -993,10 +999,6 @@
                 callbacks: { 
                   label: ctx => `${ctx.dataset.label}: ${ctx.raw}` 
                 } 
-              },
-              datalabels: {
-                font: { size: 10, weight: '600', family: "'Libre Franklin', sans-serif" },
-                formatter: v => v
               }
             },
             scales: {
