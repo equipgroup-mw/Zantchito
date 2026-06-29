@@ -45,7 +45,13 @@
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html { font-size: 16px; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+    html { 
+      font-size: 16px; 
+      scroll-behavior: smooth; 
+      -webkit-text-size-adjust: 100%; 
+      overflow-x: hidden;
+      width: 100%;
+    }
 
     body {
       font-family: 'Libre Franklin', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
@@ -55,10 +61,16 @@
       min-height: 100vh;
       min-height: 100dvh;
       overflow-x: hidden;
+      width: 100%;
+      max-width: 100vw;
+      position: relative;
     }
 
     .app-loader {
-      position: fixed; inset: 0;
+      position: fixed; 
+      inset: 0;
+      width: 100%;
+      max-width: 100vw;
       background: var(--cream);
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
@@ -85,12 +97,16 @@
 
     .app-header {
       position: sticky; top: 0; z-index: 100;
+      width: 100%;
+      max-width: 100vw;
       background: var(--navy);
       color: var(--cream);
       box-shadow: var(--shadow-lg);
     }
     .header-inner {
-      max-width: 1440px; margin: 0 auto;
+      max-width: 1440px; 
+      width: 100%;
+      margin: 0 auto;
       padding: 0 24px;
       height: var(--header-h);
       display: flex; align-items: center;
@@ -153,6 +169,7 @@
      top: var(--header-h);
      right: -280px;
      width: 280px;
+     max-width: 80vw;
      height: calc(100vh - var(--header-h));
      height: calc(100dvh - var(--header-h));
      background: var(--navy);
@@ -182,15 +199,18 @@
      opacity: 0;
      pointer-events: none;
      transition: opacity var(--transition);
+     width: 100%;
+     max-width: 100vw;
    }
    .drawer-overlay.open { opacity: 1; pointer-events: auto; }
 
    .dashboard-main {
      max-width: 1440px;
+     width: 100%;
      margin: 0 auto;
      padding: 24px;
-     width: 100%;
      overflow-x: hidden;
+     box-sizing: border-box;
    }
 
    .kpi-strip {
@@ -198,6 +218,7 @@
      grid-template-columns: repeat(6, 1fr);
      gap: 16px;
      margin-bottom: 28px;
+     width: 100%;
    }
    .kpi-card {
      background: var(--white);
@@ -207,6 +228,7 @@
      box-shadow: var(--shadow-sm);
      border-top: 3px solid var(--gold);
      transition: var(--transition);
+     min-width: 0;
    }
    .kpi-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
    .kpi-label {
@@ -224,12 +246,18 @@
      font-weight: 800;
      color: var(--navy);
      line-height: 1.1;
+     word-break: break-word;
    }
 
-   .dash-section { display: none; }
+   .dash-section { display: none; width: 100%; }
    .dash-section.active { display: block; }
 
-   .section-grid { display: grid; gap: 20px; margin-bottom: 20px; }
+   .section-grid { 
+     display: grid; 
+     gap: 20px; 
+     margin-bottom: 20px; 
+     width: 100%;
+   }
    .section-grid.one-col { grid-template-columns: 1fr; }
    .section-grid.two-col { grid-template-columns: 1fr 1fr; }
 
@@ -239,6 +267,8 @@
      padding: 24px;
      box-shadow: var(--shadow-sm);
      transition: var(--transition);
+     min-width: 0;
+     overflow: hidden;
    }
    .chart-card:hover { box-shadow: var(--shadow-md); }
    .chart-card h2 {
@@ -248,6 +278,7 @@
      margin-bottom: 16px;
      padding-bottom: 10px;
      border-bottom: 2px solid var(--cream);
+     word-wrap: break-word;
    }
    .chart-card h2 small {
      display: block;
@@ -256,10 +287,26 @@
      color: var(--text-muted);
      margin-top: 2px;
    }
-   .chart-wrap { position: relative; width: 100%; height: 320px; }
-   .chart-wrap-donut { height: 300px; max-width: 380px; margin: 0 auto; }
-   .chart-wrap-wide { height: 400px; }
-   .chart-wrap-full { height: 500px; }
+   .chart-wrap { 
+     position: relative; 
+     width: 100%; 
+     height: 320px; 
+     overflow: hidden;
+   }
+   .chart-wrap-donut { 
+     height: 300px; 
+     max-width: 380px; 
+     margin: 0 auto; 
+     width: 100%;
+   }
+   .chart-wrap-wide { 
+     height: 400px; 
+     width: 100%;
+   }
+   .chart-wrap-full { 
+     height: 500px; 
+     width: 100%;
+   }
 
    .app-footer {
      text-align: center;
@@ -268,6 +315,7 @@
      font-size: .75rem;
      border-top: 1px solid var(--gray-light);
      margin-top: 20px;
+     width: 100%;
    }
 
    @media (max-width: 1200px) {
@@ -282,19 +330,31 @@
    }
    @media (max-width: 600px) {
      :root { --header-h: 60px; }
-     .header-inner { padding: 0 12px; gap: 8px; }
+     .header-inner { 
+       padding: 0 12px; 
+       gap: 8px; 
+       width: 100%;
+       max-width: 100%;
+     }
      .logo-img { height: 30px; }
      .brand-text h1 { font-size: .75rem; }
      .brand-text .subtitle { font-size: .55rem; }
      .logo-divider { font-size: 1rem; }
      .brand-group { gap: 8px; }
      .logo-pair { gap: 4px; }
-     .dashboard-main { padding: 14px; }
+     .dashboard-main { 
+       padding: 14px;
+       width: 100%;
+       max-width: 100%;
+     }
      .kpi-strip { grid-template-columns: repeat(2, 1fr); gap: 10px; }
      .kpi-card { padding: 14px 10px; }
      .kpi-value { font-size: 1.4rem; }
      .kpi-label { font-size: .65rem; }
-     .chart-card { padding: 16px; }
+     .chart-card { 
+       padding: 16px;
+       width: 100%;
+     }
      .chart-wrap { height: 260px; }
      .chart-wrap-wide { height: 320px; }
      .chart-wrap-full { height: 400px; }
@@ -308,7 +368,11 @@
      .logo-img { height: 24px; }
      .brand-text .subtitle { display: none; }
      .brand-text h1 { font-size: .7rem; }
-     .header-inner { padding: 0 8px; gap: 4px; }
+     .header-inner { 
+       padding: 0 8px; 
+       gap: 4px; 
+       width: 100%;
+     }
    }
    @media (max-height: 500px) and (orientation: landscape) {
      :root { --header-h: 52px; }
@@ -344,6 +408,7 @@
     transform: translateX(-50%);
     z-index: 1000;
     animation: pwa-fade-in 0.5s ease-out;
+    max-width: 90vw;
   }
 
   .pwa-install-btn {
@@ -367,6 +432,7 @@
     position: relative;
     overflow: hidden;
     text-decoration: none;
+    max-width: 100%;
   }
 
   .pwa-install-btn::before {
@@ -397,6 +463,7 @@
   .btn-icon {
     font-size: 1.4rem;
     animation: glow-pulse 2s infinite;
+    flex-shrink: 0;
   }
 
   .pwa-install-btn span {
@@ -447,6 +514,8 @@
       left: 16px;
       right: 16px;
       transform: none;
+      width: calc(100% - 32px);
+      max-width: calc(100vw - 32px);
     }
 
     .pwa-install-btn {
@@ -454,6 +523,8 @@
       justify-content: center;
       padding: 14px 24px;
       font-size: 0.95rem;
+      white-space: normal;
+      text-align: center;
     }
   }
    </style>
@@ -1107,7 +1178,7 @@
           { label: 'CommCare', data: revSorted.map(d=>d.commcareRev), backgroundColor: C.navy },
           { label: 'Reported', data: revSorted.map(d=>d.reportedRev), backgroundColor: C.gold }
         ],
-        false // Changed to false for vertical bars
+        false
       );
 
       const g = aggregateCounts(D, 'gender');
@@ -1157,7 +1228,7 @@
           { label:'Male', data: directSorted.map(d=>d.directJobs - d.femaleDirect), backgroundColor: C.navy },
           { label:'Female', data: directSorted.map(d=>d.femaleDirect), backgroundColor: C.gold }
         ],
-        false // Changed to false for vertical bars
+        false
       );
 
       const indirectSorted = [...D].filter(d=>d.indirectJobs>0).sort((a,b)=>b.indirectJobs-a.indirectJobs).slice(0,5);
@@ -1167,7 +1238,7 @@
           { label:'Male', data: indirectSorted.map(d=>d.indirectJobs - d.femaleIndirect), backgroundColor: C.navy },
           { label:'Female', data: indirectSorted.map(d=>d.femaleIndirect), backgroundColor: C.gold }
         ],
-        false // Changed to false for vertical bars
+        false
       );
 
       const totalJobs = D.map(d => ({...d, total: d.directJobs+d.indirectJobs}))
