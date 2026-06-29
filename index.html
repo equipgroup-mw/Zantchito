@@ -259,6 +259,7 @@
    .chart-wrap { position: relative; width: 100%; height: 320px; }
    .chart-wrap-donut { height: 300px; max-width: 380px; margin: 0 auto; }
    .chart-wrap-wide { height: 400px; }
+   .chart-wrap-full { height: 500px; }
 
    .app-footer {
      text-align: center;
@@ -296,6 +297,7 @@
      .chart-card { padding: 16px; }
      .chart-wrap { height: 260px; }
      .chart-wrap-wide { height: 320px; }
+     .chart-wrap-full { height: 400px; }
      .chart-wrap-donut { height: 260px; }
      .chart-card h2 { font-size: .82rem; }
    }
@@ -313,6 +315,7 @@
      .logo-img { height: 28px; }
      .chart-wrap { height: 220px; }
      .chart-wrap-wide { height: 260px; }
+     .chart-wrap-full { height: 300px; }
      .kpi-strip { grid-template-columns: repeat(6, 1fr); gap: 8px; }
      .kpi-card { padding: 10px 8px; }
      .kpi-value { font-size: 1.2rem; }
@@ -322,6 +325,7 @@
      .kpi-value { font-size: 2.2rem; }
      .chart-wrap { height: 420px; }
      .chart-wrap-wide { height: 500px; }
+     .chart-wrap-full { height: 600px; }
    }
    @supports (padding: env(safe-area-inset-top)) {
      .app-header { padding-top: env(safe-area-inset-top); }
@@ -456,7 +460,7 @@
 </head>
 <body>
 
-  <div class="pwa-install-wrapper" id="pwaInstallWrapper">
+  <div class="pwa-install-wrapper hidden" id="pwaInstallWrapper">
     <button class="pwa-install-btn" id="pwaInstallBtn">
       <span class="btn-icon">📲</span>
       <span>Install App for Offline Access</span>
@@ -519,7 +523,7 @@
 
     <section class="dash-section active" id="section-overview">
       <div class="section-grid two-col">
-        <div class="chart-card"><h2>Revenue: CommCare vs Reported <small>(MWK, top 15)</small></h2><div class="chart-wrap"><canvas id="chartRevenueCompare"></canvas></div></div>
+        <div class="chart-card"><h2>Revenue: CommCare vs Reported <small>(Top 5)</small></h2><div class="chart-wrap"><canvas id="chartRevenueCompare"></canvas></div></div>
         <div class="chart-card"><h2>Gender Distribution</h2><div class="chart-wrap chart-wrap-donut"><canvas id="chartGender"></canvas></div></div>
       </div>
       <div class="section-grid two-col">
@@ -533,31 +537,30 @@
 
     <section class="dash-section" id="section-revenue">
       <div class="section-grid one-col">
-        <div class="chart-card"><h2>Reported Monthly Revenue by Entrepreneur <small>(MWK — top 15)</small></h2><div class="chart-wrap chart-wrap-wide"><canvas id="chartRevenueBar"></canvas></div></div>
+        <div class="chart-card"><h2>Reported Monthly Revenue by Entrepreneur <small>(Top 5)</small></h2><div class="chart-wrap chart-wrap-wide"><canvas id="chartRevenueBar"></canvas></div></div>
       </div>
       <div class="section-grid two-col">
-        <div class="chart-card"><h2>Revenue Variance <small>(|Reported − CommCare|, MWK, top 15)</small></h2><div class="chart-wrap"><canvas id="chartVariance"></canvas></div></div>
-        <div class="chart-card"><h2>Top 10 Incubators by Avg Revenue <small>(MWK)</small></h2><div class="chart-wrap"><canvas id="chartIncubatorRevenue"></canvas></div></div>
+        <div class="chart-card"><h2>Revenue Variance <small>(|Reported − CommCare|, Top 5)</small></h2><div class="chart-wrap"><canvas id="chartVariance"></canvas></div></div>
+        <div class="chart-card"><h2>Top 10 Incubators by Avg Revenue</h2><div class="chart-wrap"><canvas id="chartIncubatorRevenue"></canvas></div></div>
       </div>
     </section>
 
     <section class="dash-section" id="section-jobs">
       <div class="section-grid two-col">
-        <div class="chart-card"><h2>Direct Jobs by Gender <small>(top 15)</small></h2><div class="chart-wrap"><canvas id="chartDirectJobs"></canvas></div></div>
-        <div class="chart-card"><h2>Indirect Jobs by Gender <small>(top 15)</small></h2><div class="chart-wrap"><canvas id="chartIndirectJobs"></canvas></div></div>
+        <div class="chart-card"><h2>Direct Jobs by Gender <small>(Top 5)</small></h2><div class="chart-wrap"><canvas id="chartDirectJobs"></canvas></div></div>
+        <div class="chart-card"><h2>Indirect Jobs by Gender <small>(Top 5)</small></h2><div class="chart-wrap"><canvas id="chartIndirectJobs"></canvas></div></div>
       </div>
       <div class="section-grid one-col">
-        <div class="chart-card"><h2>Total Jobs per Entrepreneur <small>(Direct + Indirect, top 15)</small></h2><div class="chart-wrap chart-wrap-wide"><canvas id="chartJobsPerBiz"></canvas></div></div>
+        <div class="chart-card"><h2>Total Jobs per Entrepreneur <small>(Direct + Indirect, Top 5)</small></h2><div class="chart-wrap chart-wrap-wide"><canvas id="chartJobsPerBiz"></canvas></div></div>
       </div>
     </section>
 
     <section class="dash-section" id="section-sectors">
-      <div class="section-grid two-col">
-        <div class="chart-card"><h2>Business Sector Distribution</h2><div class="chart-wrap chart-wrap-donut"><canvas id="chartSectorDonut"></canvas></div></div>
-        <div class="chart-card"><h2>Sector Count <small>(sorted, top 15)</small></h2><div class="chart-wrap"><canvas id="chartSectorBar"></canvas></div></div>
+      <div class="section-grid one-col">
+        <div class="chart-card"><h2>Sector Count <small>(All Sectors)</small></h2><div class="chart-wrap chart-wrap-full"><canvas id="chartSectorBar"></canvas></div></div>
       </div>
       <div class="section-grid one-col">
-        <div class="chart-card"><h2>Entrepreneurs by District <small>(sorted)</small></h2><div class="chart-wrap chart-wrap-wide"><canvas id="chartDistrict"></canvas></div></div>
+        <div class="chart-card"><h2>Entrepreneurs by District <small>(All Districts)</small></h2><div class="chart-wrap chart-wrap-wide"><canvas id="chartDistrict"></canvas></div></div>
       </div>
     </section>
 
@@ -595,6 +598,57 @@
    (function () {
      'use strict';
 
+     // PWA Install Logic
+     let deferredPrompt;
+     const pwaWrapper = document.getElementById('pwaInstallWrapper');
+     const pwaBtn = document.getElementById('pwaInstallBtn');
+
+     // Check if already installed
+     if (window.matchMedia('(display-mode: standalone)').matches) {
+       pwaWrapper.classList.add('hidden');
+     }
+
+     window.addEventListener('beforeinstallprompt', (e) => {
+       // Prevent the mini-infobar from appearing on mobile
+       e.preventDefault();
+       // Store the event for later use
+       deferredPrompt = e;
+       // Show the install button
+       pwaWrapper.classList.remove('hidden');
+     });
+
+     pwaBtn.addEventListener('click', async () => {
+       if (!deferredPrompt) {
+         // Fallback for browsers that don't support beforeinstallprompt
+         alert('To install this app, use your browser\'s menu option:\n\n' +
+               '• Chrome: Menu → "Install Zantchito Impact..."\n' +
+               '• Edge: Menu → "Apps" → "Install this site as an app"\n' +
+               '• Safari: Share → "Add to Home Screen"');
+         return;
+       }
+
+       // Show the install prompt
+       deferredPrompt.prompt();
+       
+       // Wait for the user to respond to the prompt
+       const { outcome } = await deferredPrompt.userChoice;
+       console.log(`User response to install prompt: ${outcome}`);
+       
+       // Clear the prompt reference
+       deferredPrompt = null;
+       
+       // Hide the install button regardless of outcome
+       pwaWrapper.classList.add('hidden');
+     });
+
+     window.addEventListener('appinstalled', () => {
+       // Hide the install button
+       pwaWrapper.classList.add('hidden');
+       // Clear the deferredPrompt
+       deferredPrompt = null;
+       console.log('PWA was installed');
+     });
+
      if ('serviceWorker' in navigator) {
        window.addEventListener('load', () => {
          navigator.serviceWorker.register('./sw.js', { scope: '/' })
@@ -617,13 +671,10 @@
     };
 
     // Disable all Chart.js animation/transition machinery.
-    // This removes the shared rAF animator's color/element tweening
-    // entirely, which is what produced the "this._fn is not a function"
-    // crash when a hovered/transitioning chart was hidden.
     Chart.defaults.animation = false;
     Chart.defaults.transitions.active.animation.duration = 0;
     Chart.defaults.hover.mode = null;
-    Chart.defaults.events = []; // no hover/click event wiring at all -> nothing to animate, nothing to tick
+    Chart.defaults.events = [];
 
     Chart.defaults.font.family = "'Libre Franklin', 'Segoe UI', system-ui, sans-serif";
     Chart.defaults.color = C.axisColor;
@@ -631,7 +682,7 @@
     Chart.defaults.plugins.legend.labels.usePointStyle = true;
     Chart.defaults.plugins.legend.labels.padding = 16;
     Chart.defaults.plugins.legend.labels.font = { family: "'Libre Franklin', sans-serif" };
-    Chart.defaults.plugins.tooltip.enabled = false; // tooltip requires hover events; disabling avoids reintroducing animator activity
+    Chart.defaults.plugins.tooltip.enabled = false;
     Chart.defaults.plugins.tooltip.backgroundColor = C.navy;
     Chart.defaults.plugins.tooltip.titleColor = C.cream;
     Chart.defaults.plugins.tooltip.bodyColor = C.gray;
@@ -643,7 +694,7 @@
     const $ = s => document.querySelector(s);
     const $$ = s => document.querySelectorAll(s);
     const fmt = n => n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(0)+'K' : (n||0).toString();
-    const fmtMWK = n => 'MWK ' + (n||0).toLocaleString();
+    const fmtMWK = n => (n||0).toLocaleString();
     const num = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
     const int = v => { const n = parseInt(v, 10); return isNaN(n) ? 0 : n; };
     const boolYes = v => {
@@ -769,22 +820,69 @@
       return rows.map(r => parseRow(r, headers, colMap)).filter(d => d.id);
     }
 
-    // Registry of live Chart.js instances, keyed by canvas id.
-    // Only ever contains charts belonging to the currently-active tab.
+    // Registry of live Chart.js instances
     const charts = {};
 
     function destroyChart(canvasId) {
       const existing = charts[canvasId];
       if (existing) {
-        try { existing.destroy(); } catch (e) { /* already gone, ignore */ }
+        try { existing.destroy(); } catch (e) { }
         delete charts[canvasId];
       }
     }
+
+    // Plugin for data labels
+    const dataLabelPlugin = {
+      id: 'dataLabels',
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        chart.data.datasets.forEach((dataset, datasetIndex) => {
+          const meta = chart.getDatasetMeta(datasetIndex);
+          if (!meta.hidden) {
+            meta.data.forEach((element, index) => {
+              // Only draw labels for bar charts
+              if (element.width > 0 || element.height > 0) {
+                ctx.fillStyle = '#0d2136';
+                ctx.font = 'bold 11px "Libre Franklin", sans-serif';
+                ctx.textAlign = chart.options.indexAxis === 'y' ? 'left' : 'center';
+                ctx.textBaseline = 'middle';
+                
+                const value = dataset.data[index];
+                let label = '';
+                
+                // Format based on context
+                if (chart.canvas.id.includes('Revenue') || chart.canvas.id.includes('Variance') || chart.canvas.id.includes('IncubatorRevenue')) {
+                  label = value.toLocaleString();
+                } else {
+                  label = value;
+                }
+                
+                if (chart.options.indexAxis === 'y') {
+                  // Horizontal bar chart
+                  const x = element.x + 8;
+                  const y = element.y;
+                  ctx.fillText(label, x, y);
+                } else {
+                  // Vertical bar chart
+                  const x = element.x;
+                  const y = element.y - 8;
+                  ctx.fillText(label, x, y);
+                }
+              }
+            });
+          }
+        });
+      }
+    };
 
     function makeHBar(canvasId, labels, values, color, isMWK) {
       const ctx = document.getElementById(canvasId);
       if (!ctx || !labels.length) return;
       destroyChart(canvasId);
+      
+      // Calculate max value for axis limits
+      const maxVal = Math.max(...values);
+      
       charts[canvasId] = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -800,14 +898,19 @@
           indexAxis: 'y',
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
+          plugins: { 
+            legend: { display: false },
+            dataLabels: true
+          },
           scales: {
             x: {
               grid: { color: 'rgba(0,0,0,.05)' },
               ticks: {
                 color: C.axisColor,
-                callback: v => isMWK ? fmtMWK(v) : fmt(v),
-                font: { size: 11, weight: '500' }
+                callback: v => isMWK ? v.toLocaleString() : fmt(v),
+                font: { size: 11, weight: '500' },
+                maxTicksLimit: 5,
+                stepSize: Math.ceil(maxVal / 5)
               }
             },
             y: {
@@ -819,7 +922,8 @@
               }
             }
           }
-        }
+        },
+        plugins: [dataLabelPlugin]
       });
     }
 
@@ -827,6 +931,10 @@
       const ctx = document.getElementById(canvasId);
       if (!ctx || !labels.length) return;
       destroyChart(canvasId);
+      
+      // Calculate max value for axis limits
+      const maxVal = Math.max(...values);
+      
       charts[canvasId] = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -841,7 +949,10 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
+          plugins: { 
+            legend: { display: false },
+            dataLabels: true
+          },
           scales: {
             x: {
               grid: { display: false },
@@ -855,12 +966,15 @@
               grid: { color: 'rgba(0,0,0,.05)' },
               ticks: {
                 color: C.axisColor,
-                callback: v => isMWK ? fmtMWK(v) : fmt(v),
-                font: { size: 11, weight: '500' }
+                callback: v => isMWK ? v.toLocaleString() : fmt(v),
+                font: { size: 11, weight: '500' },
+                maxTicksLimit: 5,
+                stepSize: Math.ceil(maxVal / 5)
               }
             }
           }
-        }
+        },
+        plugins: [dataLabelPlugin]
       });
     }
 
@@ -911,6 +1025,14 @@
       const ctx = document.getElementById(canvasId);
       if (!ctx || !labels.length) return;
       destroyChart(canvasId);
+      
+      // Calculate max value for axis limits
+      let maxVal = 0;
+      datasets.forEach(ds => {
+        const dsMax = Math.max(...ds.data);
+        if (dsMax > maxVal) maxVal = dsMax;
+      });
+      
       charts[canvasId] = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -932,7 +1054,8 @@
                 font: { family: "'Libre Franklin', sans-serif" },
                 color: C.axisColor
               }
-            }
+            },
+            dataLabels: true
           },
           scales: {
             x: {
@@ -940,18 +1063,21 @@
               ticks: {
                 color: C.axisColor,
                 maxRotation: 0,
-                font: { size: 11, weight: '500' }
+                font: { size: 11, weight: '500' },
+                ...(isHorizontal ? { maxTicksLimit: 5, stepSize: Math.ceil(maxVal / 5) } : {})
               }
             },
             y: {
               grid: { color: 'rgba(0,0,0,.05)' },
               ticks: {
                 color: C.axisColor,
-                font: { size: 11, weight: '500' }
+                font: { size: 11, weight: '500' },
+                ...(!isHorizontal ? { maxTicksLimit: 5, stepSize: Math.ceil(maxVal / 5) } : {})
               }
             }
           }
-        }
+        },
+        plugins: [dataLabelPlugin]
       });
     }
 
@@ -974,12 +1100,12 @@
       $('#kpiFinance').textContent = finance;
       $('#kpiRegistered').textContent = registeredPct + '%';
 
-      const revSorted = [...D].sort((a,b) => b.reportedRev - a.reportedRev).slice(0,15);
+      const revSorted = [...D].sort((a,b) => b.reportedRev - a.reportedRev).slice(0,5);
       makeGrouped('chartRevenueCompare',
         revSorted.map(d => d.name.length > 20 ? d.name.slice(0,18)+'…' : d.name),
         [
-          { label: 'CommCare (MWK)', data: revSorted.map(d=>d.commcareRev), backgroundColor: C.navy },
-          { label: 'Reported (MWK)', data: revSorted.map(d=>d.reportedRev), backgroundColor: C.gold }
+          { label: 'CommCare', data: revSorted.map(d=>d.commcareRev), backgroundColor: C.navy },
+          { label: 'Reported', data: revSorted.map(d=>d.reportedRev), backgroundColor: C.gold }
         ],
         revSorted.length > 5
       );
@@ -1000,12 +1126,12 @@
     }
 
     function renderRevenue(D) {
-      const active = D.filter(d => d.reportedRev > 0).sort((a,b) => b.reportedRev - a.reportedRev).slice(0,15);
+      const active = D.filter(d => d.reportedRev > 0).sort((a,b) => b.reportedRev - a.reportedRev).slice(0,5);
       makeHBar('chartRevenueBar',
         active.map(d => d.name.length > 20 ? d.name.slice(0,18)+'…' : d.name),
         active.map(d=>d.reportedRev), C.navy, true);
 
-      const withVar = D.filter(d => d.variance !== 0).sort((a,b) => Math.abs(b.variance) - Math.abs(a.variance)).slice(0,15);
+      const withVar = D.filter(d => d.variance !== 0).sort((a,b) => Math.abs(b.variance) - Math.abs(a.variance)).slice(0,5);
       makeHBar('chartVariance',
         withVar.map(d => d.name.length > 18 ? d.name.slice(0,16)+'…' : d.name),
         withVar.map(d => Math.abs(d.variance)), C.gold, true);
@@ -1024,7 +1150,7 @@
     }
 
     function renderJobs(D) {
-      const directSorted = [...D].filter(d=>d.directJobs>0).sort((a,b)=>b.directJobs-a.directJobs).slice(0,15);
+      const directSorted = [...D].filter(d=>d.directJobs>0).sort((a,b)=>b.directJobs-a.directJobs).slice(0,5);
       makeGrouped('chartDirectJobs',
         directSorted.map(d => d.name.length>18?d.name.slice(0,16)+'…':d.name),
         [
@@ -1034,7 +1160,7 @@
         directSorted.length > 5
       );
 
-      const indirectSorted = [...D].filter(d=>d.indirectJobs>0).sort((a,b)=>b.indirectJobs-a.indirectJobs).slice(0,15);
+      const indirectSorted = [...D].filter(d=>d.indirectJobs>0).sort((a,b)=>b.indirectJobs-a.indirectJobs).slice(0,5);
       makeGrouped('chartIndirectJobs',
         indirectSorted.map(d => d.name.length>18?d.name.slice(0,16)+'…':d.name),
         [
@@ -1045,7 +1171,7 @@
       );
 
       const totalJobs = D.map(d => ({...d, total: d.directJobs+d.indirectJobs}))
-        .filter(d=>d.total>0).sort((a,b)=>b.total-a.total).slice(0,15);
+        .filter(d=>d.total>0).sort((a,b)=>b.total-a.total).slice(0,5);
       makeHBar('chartJobsPerBiz',
         totalJobs.map(d => d.name.length>20?d.name.slice(0,18)+'…':d.name),
         totalJobs.map(d=>d.total), C.gold, false);
@@ -1053,13 +1179,11 @@
 
     function renderSectors(D) {
       const sec = aggregateCounts(D, 'sector');
-      makeDonut('chartSectorDonut', sec.labels, sec.values);
-
-      const secTop = sec.labels.slice(0, 15);
-      const secValTop = sec.values.slice(0, 15);
-      makeHBar('chartSectorBar', secTop, secValTop, C.navy, false);
+      // Show all sectors, no cap
+      makeHBar('chartSectorBar', sec.labels, sec.values, C.navy, false);
 
       const dist = aggregateCounts(D, 'district');
+      // Show all districts
       if (dist.values.length > 5) makeHBar('chartDistrict', dist.labels, dist.values, C.gold, false);
       else makeVBar('chartDistrict', dist.labels, dist.values, C.gold, false);
     }
@@ -1107,7 +1231,6 @@
       integrity: renderIntegrity
     };
 
-    // Destroy every chart belonging to a given section name.
     function destroySectionCharts(name) {
       const section = $(`#section-${name}`);
       if (!section) return;
@@ -1120,14 +1243,11 @@
       const prevName = prevSection ? prevSection.id.replace('section-', '') : null;
 
       if (prevName === name) {
-        // Already on this tab, nothing to do.
         $('#mobileDrawer').classList.remove('open');
         $('#drawerOverlay').classList.remove('open');
         return;
       }
 
-      // Destroy charts in the tab we're leaving BEFORE hiding it,
-      // so no chart instance ever exists while its canvas is display:none.
       if (prevName) destroySectionCharts(prevName);
 
       $$('.dash-section').forEach(s => s.classList.remove('active'));
@@ -1141,8 +1261,6 @@
       $('#mobileDrawer').classList.remove('open');
       $('#drawerOverlay').classList.remove('open');
 
-      // Build charts for the tab we're entering, now that it is visible
-      // and has real layout dimensions.
       if (DATA && renderers[name]) {
         renderers[name](DATA);
         rendered[name] = true;
