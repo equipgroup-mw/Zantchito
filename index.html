@@ -541,7 +541,7 @@
       </div>
       <div class="section-grid two-col">
         <div class="chart-card"><h2>Revenue Variance <small>(|Reported − CommCare|, Top 5)</small></h2><div class="chart-wrap"><canvas id="chartVariance"></canvas></div></div>
-        <div class="chart-card"><h2>Top 10 Incubators by Avg Revenue</h2><div class="chart-wrap"><canvas id="chartIncubatorRevenue"></canvas></div></div>
+        <div class="chart-card"><h2>Top 10 Incubators by Avg Revenue <small>(From collected data)</small></h2><div class="chart-wrap"><canvas id="chartIncubatorRevenue"></canvas></div></div>
       </div>
     </section>
 
@@ -1107,7 +1107,7 @@
           { label: 'CommCare', data: revSorted.map(d=>d.commcareRev), backgroundColor: C.navy },
           { label: 'Reported', data: revSorted.map(d=>d.reportedRev), backgroundColor: C.gold }
         ],
-        revSorted.length > 5
+        false // Changed to false for vertical bars
       );
 
       const g = aggregateCounts(D, 'gender');
@@ -1157,7 +1157,7 @@
           { label:'Male', data: directSorted.map(d=>d.directJobs - d.femaleDirect), backgroundColor: C.navy },
           { label:'Female', data: directSorted.map(d=>d.femaleDirect), backgroundColor: C.gold }
         ],
-        directSorted.length > 5
+        false // Changed to false for vertical bars
       );
 
       const indirectSorted = [...D].filter(d=>d.indirectJobs>0).sort((a,b)=>b.indirectJobs-a.indirectJobs).slice(0,5);
@@ -1167,7 +1167,7 @@
           { label:'Male', data: indirectSorted.map(d=>d.indirectJobs - d.femaleIndirect), backgroundColor: C.navy },
           { label:'Female', data: indirectSorted.map(d=>d.femaleIndirect), backgroundColor: C.gold }
         ],
-        indirectSorted.length > 5
+        false // Changed to false for vertical bars
       );
 
       const totalJobs = D.map(d => ({...d, total: d.directJobs+d.indirectJobs}))
