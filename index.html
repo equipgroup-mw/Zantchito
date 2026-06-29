@@ -464,15 +464,21 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <script>
-  (function () {
-    'use strict';
+   <script>
+   (function () {
+     'use strict';
 
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
-      });
-    }
+     if ('serviceWorker' in navigator) {
+       window.addEventListener('load', () => {
+         navigator.serviceWorker.register('./sw.js', { scope: '/' })
+           .then(() => {
+             console.log('Service Worker registered successfully');
+           })
+           .catch(err => {
+             console.error('Service Worker registration failed:', err);
+           });
+       });
+     }
 
     const C = {
       navy: '#0d2136', gold: '#a8935a', cream: '#f4f2ef',
