@@ -1178,7 +1178,7 @@
           { label: 'CommCare', data: revSorted.map(d=>d.commcareRev), backgroundColor: C.navy },
           { label: 'Reported', data: revSorted.map(d=>d.reportedRev), backgroundColor: C.gold }
         ],
-        false
+        true // Changed to true for horizontal bars
       );
 
       const g = aggregateCounts(D, 'gender');
@@ -1228,7 +1228,7 @@
           { label:'Male', data: directSorted.map(d=>d.directJobs - d.femaleDirect), backgroundColor: C.navy },
           { label:'Female', data: directSorted.map(d=>d.femaleDirect), backgroundColor: C.gold }
         ],
-        false
+        true // Changed to true for horizontal bars
       );
 
       const indirectSorted = [...D].filter(d=>d.indirectJobs>0).sort((a,b)=>b.indirectJobs-a.indirectJobs).slice(0,5);
@@ -1238,7 +1238,7 @@
           { label:'Male', data: indirectSorted.map(d=>d.indirectJobs - d.femaleIndirect), backgroundColor: C.navy },
           { label:'Female', data: indirectSorted.map(d=>d.femaleIndirect), backgroundColor: C.gold }
         ],
-        false
+        true // Changed to true for horizontal bars
       );
 
       const totalJobs = D.map(d => ({...d, total: d.directJobs+d.indirectJobs}))
