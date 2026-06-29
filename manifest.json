@@ -2,7 +2,7 @@
   "name": "Zantchito × Equip — Impact Dashboard",
   "short_name": "Zantchito Impact",
   "description": "Entrepreneurship Impact Data Validation Dashboard",
-  "start_url": "./index.html",
+  "start_url": "/Zantchito/",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#f4f2ef",
