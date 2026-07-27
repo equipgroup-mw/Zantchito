@@ -1355,15 +1355,15 @@
       makeDonut('chartGender', g.labels, g.values);
 
       const loc = aggregateCounts(D, 'location');
-      if (loc.values.length > 5) makeHBar('chartLocation', loc.labels, loc.values, C.navy, false);
-      else makeVBar('chartLocation', loc.labels, loc.values, C.navy, false);
+      if (loc.values.length > 5) makeHBar('chartLocation', loc.labels, loc.values, C.navy, false, false, 20);
+      else makeVBar('chartLocation', loc.labels, loc.values, C.navy, false, false, 20);
 
       const stg = aggregateCounts(D, 'stage');
-      if (stg.values.length > 5) makeHBar('chartIncubation', stg.labels, stg.values, C.gold, false);
-      else makeVBar('chartIncubation', stg.labels, stg.values, C.gold, false);
+      if (stg.values.length > 5) makeHBar('chartIncubation', stg.labels, stg.values, C.gold, false, false, 32);
+      else makeVBar('chartIncubation', stg.labels, stg.values, C.gold, false, false, 32);
 
       const inc = aggregateCounts(D, 'incubator');
-      makeHBar('chartIncubatorDist', inc.labels, inc.values, C.navy, false);
+      makeHBar('chartIncubatorDist', inc.labels, inc.values, C.navy, false, false, 14);
     }
 
     function renderRevenue(D) {
@@ -1401,7 +1401,7 @@
         ['True', 'Close to Reported', 'Discrepancy'],
         [+(rTrue/rTotal*100).toFixed(1), +(rClose/rTotal*100).toFixed(1), +(rDisc/rTotal*100).toFixed(1)],
         [C.navy, C.gold, C.alert],
-        false, true, 90
+        false, true, 100
       );
 
       setupDrilldownFilter('revenueDrilldownSelect', 'revenueDrilldownTable', revClassified, true);
@@ -1415,7 +1415,7 @@
           { label:'Male', data: directSorted.map(d=>d.directJobs - d.femaleDirect), backgroundColor: C.navy },
           { label:'Female', data: directSorted.map(d=>d.femaleDirect), backgroundColor: C.gold }
         ],
-        true
+        true, false, 18
       );
 
       const indirectSorted = [...D].filter(d=>d.indirectJobs>0).sort((a,b)=>b.indirectJobs-a.indirectJobs).slice(0,5);
@@ -1425,7 +1425,7 @@
           { label:'Male', data: indirectSorted.map(d=>d.indirectJobs - d.femaleIndirect), backgroundColor: C.navy },
           { label:'Female', data: indirectSorted.map(d=>d.femaleIndirect), backgroundColor: C.gold }
         ],
-        true
+        true, false, 18
       );
 
       const jobsTotals = D.map(d => ({
@@ -1462,7 +1462,7 @@
           { label: 'Collected (Field)', data: [sums.totalCollected, sums.directCollected, sums.indirectCollected], backgroundColor: C.gold },
           { label: 'CommCare Recorded', data: [sums.totalCommcare, sums.directCommcare, sums.indirectCommcare], backgroundColor: C.navy }
         ],
-        false
+        false, false, 260
       );
 
       const jobsClassified = classifyList(jobsTotals, 'totalCommcare', 'totalCollected');
@@ -1485,11 +1485,11 @@
 
     function renderSectors(D) {
       const sec = aggregateCounts(D, 'sector');
-      makeHBar('chartSectorBar', sec.labels, sec.values, C.navy, false);
+      makeHBar('chartSectorBar', sec.labels, sec.values, C.navy, false, false, 16);
 
       const dist = aggregateCounts(D, 'district');
-      if (dist.values.length > 5) makeHBar('chartDistrict', dist.labels, dist.values, C.gold, false);
-      else makeVBar('chartDistrict', dist.labels, dist.values, C.gold, false);
+      if (dist.values.length > 5) makeHBar('chartDistrict', dist.labels, dist.values, C.gold, false, false, 27);
+      else makeVBar('chartDistrict', dist.labels, dist.values, C.gold, false, false, 27);
     }
 
     function renderFinance(D) {
@@ -1500,8 +1500,8 @@
       const types = {};
       D.filter(d=>d.financeType).forEach(d => { types[d.financeType] = (types[d.financeType]||0)+1; });
       const ts = sortDesc(Object.keys(types), Object.values(types));
-      if (ts.values.length > 5) makeHBar('chartFinanceTypes', ts.labels, ts.values, C.navy, false);
-      else makeVBar('chartFinanceTypes', ts.labels, ts.values, C.navy, false);
+      if (ts.values.length > 5) makeHBar('chartFinanceTypes', ts.labels, ts.values, C.navy, false, false, 8);
+      else makeVBar('chartFinanceTypes', ts.labels, ts.values, C.navy, false, false, 8);
 
       const inc2 = { 'Yes':0, 'No':0 };
       D.forEach(d => { d.revenueIncrease ? inc2['Yes']++ : inc2['No']++; });
@@ -1510,20 +1510,20 @@
 
     function renderIntegrity(D) {
       const conf = aggregateCounts(D, 'confidence');
-      if (conf.values.length > 5) makeHBar('chartConfidence', conf.labels, conf.values, C.navy, false);
-      else makeVBar('chartConfidence', conf.labels, conf.values, C.navy, false);
+      if (conf.values.length > 5) makeHBar('chartConfidence', conf.labels, conf.values, C.navy, false, false, 26);
+      else makeVBar('chartConfidence', conf.labels, conf.values, C.navy, false, false, 26);
 
       const rec = aggregateCounts(D, 'records');
-      if (rec.values.length > 5) makeHBar('chartRecords', rec.labels, rec.values, C.gold, false);
-      else makeVBar('chartRecords', rec.labels, rec.values, C.gold, false);
+      if (rec.values.length > 5) makeHBar('chartRecords', rec.labels, rec.values, C.gold, false, false, 33);
+      else makeVBar('chartRecords', rec.labels, rec.values, C.gold, false, false, 33);
 
       const con = aggregateCounts(D, 'consistency');
-      if (con.values.length > 5) makeHBar('chartConsistency', con.labels, con.values, C.navy, false);
-      else makeVBar('chartConsistency', con.labels, con.values, C.navy, false);
+      if (con.values.length > 5) makeHBar('chartConsistency', con.labels, con.values, C.navy, false, false, 33);
+      else makeVBar('chartConsistency', con.labels, con.values, C.navy, false, false, 33);
 
       const trans = aggregateCounts(D, 'transparency');
-      if (trans.values.length > 5) makeHBar('chartTransparency', trans.labels, trans.values, C.gold, false);
-      else makeVBar('chartTransparency', trans.labels, trans.values, C.gold, false);
+      if (trans.values.length > 5) makeHBar('chartTransparency', trans.labels, trans.values, C.gold, false, false, 26);
+      else makeVBar('chartTransparency', trans.labels, trans.values, C.gold, false, false, 26);
     }
 
     const renderers = {
