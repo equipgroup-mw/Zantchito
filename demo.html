@@ -515,7 +515,6 @@
       box-shadow: 0 12px 40px rgba(168, 147, 90, 0.6),
                   0 0 30px rgba(168, 147, 90, 0.5),
                   inset 0 2px 4px rgba(255, 255, 255, 0.3);
-      background: linear-gradient(135deg, #c4ae76 0%, #a8935a 50%, #c4ae76 100%);
       animation: pulse-glow 1.5s infinite;
     }
 
@@ -789,7 +788,6 @@
      const pwaWrapper = document.getElementById('pwaInstallWrapper');
      const pwaBtn = document.getElementById('pwaInstallBtn');
 
-     // Check if already installed
      if (window.matchMedia('(display-mode: standalone)').matches) {
        pwaWrapper.classList.add('hidden');
      }
@@ -854,10 +852,8 @@
     const $ = s => document.querySelector(s);
     const $$ = s => document.querySelectorAll(s);
     const fmt = n => n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(0)+'K' : (n||0).toString();
-    const MOBILE_BREAKPOINT = 600;
-    const isMobileView = () => window.innerWidth <= MOBILE_BREAKPOINT;
     
-    // Compact formatting for revenue on mobile
+    // Compact revenue formatting: 4,500,000 -> 4.5m, 889,000 -> 889k, 1,451,000 -> 1.45m
     const fmtCompactMWK = n => {
       n = n || 0;
       const abs = Math.abs(n);
@@ -865,9 +861,6 @@
       if (abs >= 1e3) return Math.round(n/1e3) + 'k';
       return Math.round(n).toString();
     };
-    
-    // Format MWK based on screen size
-    const fmtMWK = n => isMobileView() ? fmtCompactMWK(n) : (n||0).toLocaleString();
 
     const classifyDiscrepancy = (commcareVal, reportedVal) => {
       if (commcareVal === reportedVal) return 'True';
@@ -1029,7 +1022,7 @@
       }
     }
 
-    // Data label plugin with mobile-aware MWK formatting
+    // Data label plugin with compact MWK formatting
     const dataLabelPlugin = {
       id: 'dataLabels',
       afterDatasetsDraw(chart) {
@@ -1038,32 +1031,39 @@
           const meta = chart.getDatasetMeta(datasetIndex);
           if (!meta.hidden) {
             meta.data.forEach((element, index) => {
-              if (element.width > 0 || element.height > 0) {
-                ctx.fillStyle = '#0d2136';
-                ctx.font = 'bold 11px "Libre Franklin", sans-serif';
-                ctx.textAlign = chart.options.indexAxis === 'y' ? 'left' : 'center';
-                ctx.textBaseline = 'middle';
-                
-                const value = dataset.data[index];
-                let label;
-
-                if (chart.$isPercent) {
-                  label = value.toFixed(1) + '%';
-                } else if (chart.$isMWK) {
-                  label = fmtMWK(value);
-                } else {
-                  label = value;
-                }
-                
-                if (chart.options.indexAxis === 'y') {
-                  const x = element.x + 8;
-                  const y = element.y;
-                  ctx.fillText(label, x, y);
-                } else {
-                  const x = element.x;
-                  const y = element.y - 8;
-                  ctx.fillText(label, x, y);
-                }
+              const value = dataset.data[index];
+              if (value === undefined || value === null) return;
+              
+              ctx.fillStyle = '#0d2136';
+              ctx.font = 'bold 11px "Libre Franklin", sans-serif';
+              ctx.textAlign = chart.options.indexAxis === 'y' ? 'left' : 'center';
+              ctx.textBaseline = 'middle';
+              
+              let label;
+              
+              if (chart.$isMWK) {
+                label = fmtCompactMWK(value);
+              } else if (chart.$isPercent) {
+                // Add % symbol to data labels for percent charts
+                label = value.toFixed(1) + '%';
+              } else if (typeof value === 'number' && value >= 1000) {
+                label = fmtCompactMWK(value);
+              } else {
+                label = value.toString();
+              }
+              
+              if (value === 0 && chart.options.indexAxis === 'x') {
+                return;
+              }
+              
+              if (chart.options.indexAxis === 'y') {
+                const x = element.x + 8;
+                const y = element.y;
+                ctx.fillText(label, x, y);
+              } else {
+                const x = element.x;
+                const y = element.y - 8;
+                ctx.fillText(label, x, y);
               }
             });
           }
@@ -1071,15 +1071,16 @@
       }
     };
 
-    function makeHBar(canvasId, labels, values, color, isMWK, isPercent, forceHideAxisMobile) {
+    // Added maxVal parameter to enforce specific axis maximums
+    function makeHBar(canvasId, labels, values, color, isMWK, isPercent, forceHideAxisMobile, maxVal) {
       const ctx = document.getElementById(canvasId);
       if (!ctx || !labels.length) return;
       destroyChart(canvasId);
       
-      const maxVal = Math.max(...values);
-      const hideNumericAxis = isMobileView() && (isMWK || forceHideAxisMobile);
+      const dataMaxVal = Math.max(...values);
+      const hideNumericAxis = isMWK || forceHideAxisMobile;
       
-      charts[canvasId] = new Chart(ctx, {
+      const chartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
           labels,
@@ -1103,11 +1104,12 @@
               grid: { color: 'rgba(0,0,0,.05)' },
               ticks: {
                 color: C.axisColor,
-                callback: v => isPercent ? v + '%' : (isMWK ? fmtMWK(v) : fmt(v)),
+                callback: v => isPercent ? v + '%' : (isMWK ? fmtCompactMWK(v) : fmt(v)),
                 font: { size: 11, weight: '500' },
                 maxTicksLimit: 5,
-                stepSize: Math.ceil(maxVal / 5)
-              }
+                stepSize: Math.ceil((maxVal || dataMaxVal) / 5)
+              },
+              max: maxVal
             },
             y: {
               grid: { display: false },
@@ -1121,19 +1123,23 @@
         },
         plugins: [dataLabelPlugin]
       });
-      charts[canvasId].$isMWK = !!isMWK;
-      charts[canvasId].$isPercent = !!isPercent;
+      
+      chartInstance.$isMWK = !!isMWK;
+      chartInstance.$isPercent = !!isPercent;
+      
+      charts[canvasId] = chartInstance;
+      return chartInstance;
     }
 
-    function makeVBar(canvasId, labels, values, color, isMWK, isPercent, forceHideAxisMobile) {
+    function makeVBar(canvasId, labels, values, color, isMWK, isPercent, forceHideAxisMobile, maxVal) {
       const ctx = document.getElementById(canvasId);
       if (!ctx || !labels.length) return;
       destroyChart(canvasId);
       
-      const maxVal = Math.max(...values);
-      const hideNumericAxis = isMobileView() && (isMWK || forceHideAxisMobile);
+      const dataMaxVal = Math.max(...values);
+      const hideNumericAxis = isMWK || forceHideAxisMobile;
       
-      charts[canvasId] = new Chart(ctx, {
+      const chartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
           labels,
@@ -1164,18 +1170,23 @@
               grid: { color: 'rgba(0,0,0,.05)' },
               ticks: {
                 color: C.axisColor,
-                callback: v => isPercent ? v + '%' : (isMWK ? fmtMWK(v) : fmt(v)),
+                callback: v => isPercent ? v + '%' : (isMWK ? fmtCompactMWK(v) : fmt(v)),
                 font: { size: 11, weight: '500' },
                 maxTicksLimit: 5,
-                stepSize: Math.ceil(maxVal / 5)
-              }
+                stepSize: Math.ceil((maxVal || dataMaxVal) / 5)
+              },
+              max: maxVal
             }
           }
         },
         plugins: [dataLabelPlugin]
       });
-      charts[canvasId].$isMWK = !!isMWK;
-      charts[canvasId].$isPercent = !!isPercent;
+      
+      chartInstance.$isMWK = !!isMWK;
+      chartInstance.$isPercent = !!isPercent;
+      
+      charts[canvasId] = chartInstance;
+      return chartInstance;
     }
 
     function makeDonut(canvasId, labels, values) {
@@ -1221,28 +1232,29 @@
       });
     }
 
-    function makeGrouped(canvasId, labels, datasets, isHorizontal, isMWK, forceHideAxisMobile) {
+    // Added maxVal parameter to enforce specific axis maximums
+    function makeGrouped(canvasId, labels, datasets, isHorizontal, isMWK, forceHideAxisMobile, maxVal) {
       const ctx = document.getElementById(canvasId);
       if (!ctx || !labels.length) return;
       destroyChart(canvasId);
       
-      let maxVal = 0;
+      let dataMaxVal = 0;
       datasets.forEach(ds => {
         const dsMax = Math.max(...ds.data);
-        if (dsMax > maxVal) maxVal = dsMax;
+        if (dsMax > dataMaxVal) dataMaxVal = dsMax;
       });
 
-      const hideNumericAxis = isMobileView() && (isMWK || forceHideAxisMobile);
+      const hideNumericAxis = isMWK || forceHideAxisMobile;
       const numericTicks = {
         color: C.axisColor,
         maxRotation: 0,
         font: { size: 11, weight: '500' },
-        callback: v => isMWK ? fmtMWK(v) : fmt(v),
+        callback: v => isMWK ? fmtCompactMWK(v) : fmt(v),
         maxTicksLimit: 5,
-        stepSize: Math.ceil(maxVal / 5)
+        stepSize: Math.ceil((maxVal || dataMaxVal) / 5)
       };
       
-      charts[canvasId] = new Chart(ctx, {
+      const chartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
           labels,
@@ -1268,16 +1280,20 @@
           },
           scales: {
             x: isHorizontal
-              ? (hideNumericAxis ? { display: false } : { grid: { display: false }, ticks: numericTicks })
+              ? (hideNumericAxis ? { display: false } : { grid: { display: false }, ticks: numericTicks, max: maxVal })
               : { grid: { display: false }, ticks: { color: C.axisColor, maxRotation: 0, font: { size: 11, weight: '500' } } },
             y: !isHorizontal
-              ? (hideNumericAxis ? { display: false } : { grid: { color: 'rgba(0,0,0,.05)' }, ticks: numericTicks })
+              ? (hideNumericAxis ? { display: false } : { grid: { color: 'rgba(0,0,0,.05)' }, ticks: numericTicks, max: maxVal })
               : { grid: { color: 'rgba(0,0,0,.05)' }, ticks: { color: C.axisColor, font: { size: 11, weight: '500' } } }
           }
         },
         plugins: [dataLabelPlugin]
       });
-      charts[canvasId].$isMWK = !!isMWK;
+      
+      chartInstance.$isMWK = !!isMWK;
+      
+      charts[canvasId] = chartInstance;
+      return chartInstance;
     }
 
     let DATA = null;
@@ -1288,7 +1304,7 @@
       if (!table) return;
       const tbody = table.querySelector('tbody');
       const filtered = filterStatus === 'All' ? rows : rows.filter(r => r.$status === filterStatus);
-      const fmtVal = v => isMWKField ? fmtMWK(v) : v;
+      const fmtVal = v => isMWKField ? fmtCompactMWK(v) : v;
 
       if (!filtered.length) {
         tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:16px;">No entrepreneurs in this category</td></tr>';
@@ -1337,7 +1353,7 @@
           { label: 'CommCare', data: revSorted.map(d=>d.commcareRev), backgroundColor: C.navy },
           { label: 'Reported', data: revSorted.map(d=>d.reportedRev), backgroundColor: C.gold }
         ],
-        true, true
+        true, true, false, 5500000 // Max 5.5m
       );
 
       const g = aggregateCounts(D, 'gender');
@@ -1359,12 +1375,12 @@
       const active = D.filter(d => d.reportedRev > 0).sort((a,b) => b.reportedRev - a.reportedRev).slice(0,5);
       makeHBar('chartRevenueBar',
         active.map(d => d.name.length > 20 ? d.name.slice(0,18)+'…' : d.name),
-        active.map(d=>d.reportedRev), C.navy, true);
+        active.map(d=>d.reportedRev), C.navy, true, false, false, 5500000); // Max 5.5m
 
       const withVar = D.filter(d => d.variance !== 0).sort((a,b) => Math.abs(b.variance) - Math.abs(a.variance)).slice(0,5);
       makeHBar('chartVariance',
         withVar.map(d => d.name.length > 18 ? d.name.slice(0,16)+'…' : d.name),
-        withVar.map(d => Math.abs(d.variance)), C.gold, true);
+        withVar.map(d => Math.abs(d.variance)), C.gold, true, false, false, 3500000); // Max 3.5m
 
       const incGroups = {};
       D.forEach(d => {
@@ -1376,7 +1392,7 @@
       })).sort((a,b) => b.value - a.value).slice(0,10);
       makeHBar('chartIncubatorRevenue',
         incAvg.map(d => d.label.length > 22 ? d.label.slice(0,20)+'…' : d.label),
-        incAvg.map(d => d.value), C.navy, true);
+        incAvg.map(d => d.value), C.navy, true, false, false, 1000000); // Max 1m
 
       const revClassified = classifyList(D, 'commcareRev', 'reportedRev');
       const rTotal = revClassified.length;
@@ -1390,7 +1406,7 @@
         ['True', 'Close to Reported', 'Discrepancy'],
         [+(rTrue/rTotal*100).toFixed(1), +(rClose/rTotal*100).toFixed(1), +(rDisc/rTotal*100).toFixed(1)],
         [C.navy, C.gold, C.alert],
-        false, true, true
+        false, true, true, 90 // Max 90%
       );
 
       setupDrilldownFilter('revenueDrilldownSelect', 'revenueDrilldownTable', revClassified, true);
@@ -1432,7 +1448,7 @@
           { label: 'Collected (Field)', data: topJobs.map(d=>d.totalCollected), backgroundColor: C.gold },
           { label: 'CommCare Recorded', data: topJobs.map(d=>d.totalCommcare), backgroundColor: C.navy }
         ],
-        true
+        true, false, false, 18 // Max 18
       );
 
       const sums = D.reduce((acc, d) => {
@@ -1466,7 +1482,7 @@
         ['True', 'Close to Reported', 'Discrepancy'],
         [+(jTrue/jTotal*100).toFixed(1), +(jClose/jTotal*100).toFixed(1), +(jDisc/jTotal*100).toFixed(1)],
         [C.navy, C.gold, C.alert],
-        false, true
+        false, true, false, 90 // Max 90%
       );
 
       setupDrilldownFilter('jobsDrilldownSelect', 'jobsDrilldownTable', jobsClassified, false);
@@ -1592,23 +1608,6 @@
           drawer.classList.remove('open');
           overlay.classList.remove('open');
         }
-      });
-
-      let lastMobileState = isMobileView();
-      let resizeTimer = null;
-      window.addEventListener('resize', () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-          const nowMobile = isMobileView();
-          if (nowMobile !== lastMobileState) {
-            lastMobileState = nowMobile;
-            const activeSection = $('.dash-section.active');
-            if (activeSection && DATA) {
-              const name = activeSection.id.replace('section-', '');
-              if (renderers[name]) renderers[name](DATA);
-            }
-          }
-        }, 250);
       });
     }
 
