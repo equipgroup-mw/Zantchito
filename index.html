@@ -1375,7 +1375,7 @@
       const withVar = D.filter(d => d.variance !== 0).sort((a,b) => Math.abs(b.variance) - Math.abs(a.variance)).slice(0,5);
       makeHBar('chartVariance',
         withVar.map(d => d.name.length > 18 ? d.name.slice(0,16)+'…' : d.name),
-        withVar.map(d => Math.abs(d.variance)), C.gold, true, false, 3500000);
+        withVar.map(d => Math.abs(d.variance)), C.gold, true, false, 4000000);
 
       const incGroups = {};
       D.forEach(d => {
@@ -1387,7 +1387,7 @@
       })).sort((a,b) => b.value - a.value).slice(0,10);
       makeHBar('chartIncubatorRevenue',
         incAvg.map(d => d.label.length > 22 ? d.label.slice(0,20)+'…' : d.label),
-        incAvg.map(d => d.value), C.navy, true, false, 1000000);
+        incAvg.map(d => d.value), C.navy, true, false, 1400000);
 
       const revClassified = classifyList(D, 'commcareRev', 'reportedRev');
       const rTotal = revClassified.length;
